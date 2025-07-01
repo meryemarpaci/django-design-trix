@@ -278,15 +278,25 @@ def logout_view(request):
 def profile_view(request, username):
     user = get_object_or_404(User, username=username)
     
+    # Ensure user has a profile
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    
     # Kullanıcının kendi profili ise veya tasarım yayınladıysa göster
     if request.user == user:
-        designs = Design.objects.filter(user=user)
+        designs = Design.objects.filter(user=user).order_by('-created_at')
+        print(f"DEBUG: User {username} has {designs.count()} designs total")
     else:
-        designs = Design.objects.filter(user=user, status='published')
+        designs = Design.objects.filter(user=user, status='published').order_by('-created_at')
+        print(f"DEBUG: User {username} has {designs.count()} published designs")
+    
+    # Debug: tasarımları listele
+    for design in designs:
+        print(f"DEBUG: Design: {design.title} - Status: {design.status} - Image: {design.image}")
     
     context = {
         'user': user,
         'designs': designs,
+        'profile': profile,
     }
     return render(request, 'auth/profile.html', context)
 

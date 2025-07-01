@@ -552,15 +552,15 @@
                                 <h3 class="cosmic-card-title">{{ design.title }}</h3>
                                 <div class="cosmic-card-creator">
                                     <div class="cosmic-card-avatar">
-                                        {% if design.owner.profile.avatar %}
-                                            <img src="{{ design.owner.profile.avatar.url }}" alt="{{ design.owner.username }}">
+                                        {% if design.user.profile.avatar %}
+                                            <img src="{{ design.user.profile.avatar.url }}" alt="{{ design.user.username }}">
                                         {% else %}
                                             <div class="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800 text-xs font-bold">
-                                                {{ design.owner.username|make_list|first|upper }}
+                                                {{ design.user.username|make_list|first|upper }}
                                             </div>
                                         {% endif %}
                                     </div>
-                                    <span>{{ design.owner.get_full_name|default:design.owner.username }}</span>
+                                    <span>{{ design.user.get_full_name|default:design.user.username }}</span>
                                 </div>
                                 
                                 {% if design.description %}

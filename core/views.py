@@ -17,6 +17,7 @@ import json
 import uuid
 from PIL import Image
 import logging
+import requests
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -530,3 +531,56 @@ def debug(request):
     </html>
     """
     return HttpResponse(html)
+
+@login_required(login_url='/login/')
+def test_ai_model(request):
+    """
+    Simple test endpoint for AI model functionality
+    """
+    if not AI_AVAILABLE:
+        return JsonResponse({
+            'success': False,
+            'error': 'AI functionality not available'
+        })
+    
+    try:
+        # Simple test with Hugging Face API
+        api_url = "https://api-inference.huggingface.co/models/meryemarpaci/sd2base-inpainting-lora"
+        headers = {
+            "Authorization": f"Bearer {os.environ.get('HUGGINGFACE_API_TOKEN', '')}"
+        }
+        
+        # Simple test payload
+        test_payload = {
+            "inputs": "a beautiful sunset landscape"
+        }
+        
+        logger.info("Testing AI model with simple prompt...")
+        
+        response = requests.post(
+            api_url,
+            headers=headers,
+            json=test_payload,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            return JsonResponse({
+                'success': True,
+                'message': 'AI model is working! Response received successfully.',
+                'status_code': response.status_code,
+                'api_url': api_url
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': f'API returned status {response.status_code}: {response.text}',
+                'status_code': response.status_code
+            })
+            
+    except Exception as e:
+        logger.error(f"AI model test failed: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Test failed: {str(e)}'
+        })

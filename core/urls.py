@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/inpaint/', views.inpaint_image, name='inpaint_image'),
     path('api/upload-for-inpainting/', views.upload_for_inpainting, name='upload_for_inpainting'),
     path('api/ai-status/', views.check_ai_status, name='check_ai_status'),
+    path('api/test-ai/', views.test_ai_model, name='test_ai_model'),
     
     # Debug (geçici)
     path('debug/', views.debug, name='debug'),

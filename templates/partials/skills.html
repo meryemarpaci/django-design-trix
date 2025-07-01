@@ -1,0 +1,259 @@
+{% load static %}
+
+<section id="skills" class="py-20 relative">
+    <div class="container mx-auto px-6">
+        <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center gradient-text ice-text">Becerilerimiz</h2>
+        
+        <div class="skills-container">
+            <div class="frost-panel mb-8 p-6">
+                <div class="frost-panel-glow"></div>
+                <h3 class="text-2xl font-bold mb-6 gradient-text ice-text text-center">Uzmanlık Alanlarımız</h3>
+                <p class="text-center mb-8 text-gray-600">Dijital tasarım dünyasında sınırları zorlamak için geliştirdiğimiz becerilerimiz</p>
+                
+                <div class="skill-item fade-in">
+                    <div class="ice-crystal top-right"></div>
+                    <div class="flex justify-between mb-2">
+                        <div class="skill-name">3D Modelleme</div>
+                        <div class="skill-value">90%</div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="90%" style="width: 0"></div>
+                    </div>
+                    <div class="skill-description">Karmaşık 3D nesneleri oluşturma ve detaylandırma</div>
+                </div>
+                
+                <div class="skill-item fade-in">
+                    <div class="ice-crystal top-left"></div>
+                    <div class="flex justify-between mb-2">
+                        <div class="skill-name">Yapay Zeka ile Tasarım</div>
+                        <div class="skill-value">85%</div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="85%" style="width: 0"></div>
+                    </div>
+                    <div class="skill-description">AI destekli yaratıcı tasarım süreçleri</div>
+                </div>
+                
+                <div class="skill-item fade-in">
+                    <div class="ice-crystal bottom-right"></div>
+                    <div class="flex justify-between mb-2">
+                        <div class="skill-name">Kullanıcı Arayüzü Tasarımı</div>
+                        <div class="skill-value">80%</div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="80%" style="width: 0"></div>
+                    </div>
+                    <div class="skill-description">Etkileyici ve kullanıcı dostu arayüzler</div>
+                </div>
+                
+                <div class="skill-item fade-in">
+                    <div class="ice-crystal bottom-left"></div>
+                    <div class="flex justify-between mb-2">
+                        <div class="skill-name">Fotorealistik Render</div>
+                        <div class="skill-value">95%</div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="95%" style="width: 0"></div>
+                    </div>
+                    <div class="skill-description">Gerçekçi ışık ve materyal hesaplamaları</div>
+                </div>
+                
+                <div class="skill-item fade-in">
+                    <div class="ice-crystal top-right"></div>
+                    <div class="flex justify-between mb-2">
+                        <div class="skill-name">Karakter Animasyonu</div>
+                        <div class="skill-value">88%</div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="88%" style="width: 0"></div>
+                    </div>
+                    <div class="skill-description">Karakterlere doğal hareket ve ifade kazandırma</div>
+                </div>
+                
+                <div class="skill-item fade-in">
+                    <div class="ice-crystal top-left"></div>
+                    <div class="flex justify-between mb-2">
+                        <div class="skill-name">Özel Efekt Tasarımı</div>
+                        <div class="skill-value">92%</div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="92%" style="width: 0"></div>
+                    </div>
+                    <div class="skill-description">Etkileyici görsel efektler ve simülasyonlar</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .ice-text {
+            text-shadow: 
+                0 0 5px rgba(255, 255, 255, 0.8),
+                0 0 10px rgba(147, 51, 234, 0.5),
+                0 0 20px rgba(147, 51, 234, 0.3);
+        }
+        
+        .frost-panel {
+            position: relative;
+            border-radius: 15px;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.2) 0%, 
+                rgba(255, 255, 255, 0.05) 100%);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 10px 30px rgba(147, 51, 234, 0.2),
+                inset 0 0 20px rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .frost-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.6) 45%,
+                transparent 50%
+            );
+            transform: rotate(45deg);
+            animation: frost-shine 6s infinite;
+            z-index: -1;
+        }
+        
+        @keyframes frost-shine {
+            0% {
+                top: -100%;
+                left: -100%;
+            }
+            50%, 100% {
+                top: 100%;
+                left: 100%;
+            }
+        }
+        
+        .frost-panel-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(147, 51, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+            z-index: -1;
+            filter: blur(20px);
+            opacity: 0.8;
+        }
+        
+        .ice-crystal {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1));
+            clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+            opacity: 0.3;
+            z-index: -1;
+            filter: drop-shadow(0 0 10px rgba(147, 51, 234, 0.3));
+        }
+        
+        .ice-crystal.top-right {
+            top: -20px;
+            right: -20px;
+            transform: rotate(25deg);
+        }
+        
+        .ice-crystal.top-left {
+            top: -20px;
+            left: -20px;
+            transform: rotate(-25deg);
+        }
+        
+        .ice-crystal.bottom-right {
+            bottom: -20px;
+            right: -20px;
+            transform: rotate(65deg);
+        }
+        
+        .ice-crystal.bottom-left {
+            bottom: -20px;
+            left: -20px;
+            transform: rotate(-65deg);
+        }
+        
+        .skill-item {
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(147, 51, 234, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .skill-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(147, 51, 234, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .skill-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #4c1d95;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+        
+        .skill-value {
+            font-weight: 700;
+            color: #9333ea;
+            text-shadow: 0 0 3px rgba(147, 51, 234, 0.3);
+        }
+        
+        .skill-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #9333ea, #ec4899);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .skill-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.8), 
+                transparent);
+            animation: skill-shine 3s infinite;
+        }
+        
+        .skill-description {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+    </style>
+</section> 

@@ -1,0 +1,644 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ user.username }} - Profil{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* 3D Kredi Kartı Efekti */
+    .credit-card-container {
+        perspective: 1000px;
+        width: 100%;
+        max-width: 450px;
+        height: 280px;
+        margin: 0 auto;
+        z-index: 1;
+        transition: all 0.5s ease;
+    }
+
+    .credit-card {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+    }
+
+    .credit-card-container:hover .credit-card {
+        transform: rotateY(180deg);
+    }
+
+    .credit-card-front, .credit-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .credit-card-front {
+        background: linear-gradient(135deg, #001a33 0%, #003366 50%, #0056b3 100%);
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        z-index: 2;
+    }
+
+    .credit-card-back {
+        background: linear-gradient(135deg, #002240 0%, #003366 100%);
+        transform: rotateY(180deg);
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Nebula Efekti */
+    .nebula-effect {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 80% 20%, rgba(15, 160, 206, 0.5) 0%, transparent 50%),
+            radial-gradient(circle at 20% 70%, rgba(51, 153, 255, 0.4) 0%, transparent 60%),
+            radial-gradient(circle at 50% 40%, rgba(0, 195, 255, 0.3) 0%, transparent 70%);
+        mix-blend-mode: screen;
+        opacity: 0.8;
+        border-radius: 20px;
+        animation: nebula 15s ease infinite;
+    }
+
+    .star-field {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(1px 1px at 20px 30px, white, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 40px 70px, white, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 50px 160px, white, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 90px 40px, white, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 130px 80px, white, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 160px 120px, white, rgba(0,0,0,0));
+        background-size: 200px 200px;
+        opacity: 0.4;
+    }
+
+    .holographic-effect {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, transparent 40%, rgba(51, 195, 240, 0.15) 45%, rgba(51, 195, 240, 0.3) 50%, rgba(51, 195, 240, 0.15) 55%, transparent 60%);
+        background-size: 200% 200%;
+        opacity: 0.7;
+        animation: holographic 5s ease infinite;
+        border-radius: 20px;
+    }
+
+    .credit-card-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        z-index: 5;
+        position: relative;
+    }
+
+    .credit-card-logo-symbol {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #0FA0CE 0%, #0056b3 100%);
+        clip-path: polygon(40% 0%, 60% 0%, 100% 40%, 100% 60%, 60% 100%, 40% 100%, 0% 60%, 0% 40%);
+        filter: drop-shadow(0 0 10px rgba(15, 160, 206, 0.8));
+        animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    .credit-card-logo-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .credit-card-logo-text-top {
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+
+    .credit-card-logo-text-bottom {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+
+    .credit-card-chip {
+        width: 50px;
+        height: 35px;
+        background: linear-gradient(135deg, #d4d4d4 0%, #a0a0a0 50%, #d4d4d4 100%);
+        border-radius: 5px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 5;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+
+    .credit-card-chip::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 5px;
+        width: calc(100% - 10px);
+        height: calc(100% - 10px);
+        background: linear-gradient(to bottom, 
+            rgba(255,255,255,0.4) 0%, 
+            rgba(255,255,255,0) 100%);
+        border-radius: 2px;
+    }
+
+    .credit-card-number {
+        font-family: 'Courier New', monospace;
+        font-size: 22px;
+        color: white;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        position: relative;
+        z-index: 5;
+    }
+
+    .credit-card-name {
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.85);
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        position: relative;
+        z-index: 5;
+    }
+
+    .credit-card-expiry {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.75);
+        position: relative;
+        z-index: 5;
+    }
+
+    .credit-card-back-strip {
+        background: rgba(0, 0, 0, 0.8);
+        height: 50px;
+        margin: 20px -25px;
+    }
+
+    .credit-card-cvc {
+        background: rgba(255, 255, 255, 0.85);
+        padding: 10px;
+        margin-top: 20px;
+        border-radius: 5px;
+        font-family: 'Courier New', monospace;
+        color: #333;
+        letter-spacing: 1px;
+        text-align: right;
+        font-size: 14px;
+        position: relative;
+    }
+
+    .credit-card-back-info {
+        margin-top: auto;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        text-align: center;
+    }
+
+    .credit-card-id {
+        position: absolute;
+        right: 25px;
+        bottom: 15px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        letter-spacing: 0.5px;
+        z-index: 5;
+    }
+
+    @keyframes nebula {
+        0% { background-position: 0% 0%; }
+        50% { background-position: 100% 100%; }
+        100% { background-position: 0% 0%; }
+    }
+
+    @keyframes holographic {
+        0% { background-position: 0% 0%; }
+        50% { background-position: 100% 100%; }
+        100% { background-position: 0% 0%; }
+    }
+
+    @keyframes pulse-glow {
+        0% { filter: drop-shadow(0 0 5px rgba(15, 160, 206, 0.6)); }
+        50% { filter: drop-shadow(0 0 15px rgba(15, 160, 206, 0.9)); }
+        100% { filter: drop-shadow(0 0 5px rgba(15, 160, 206, 0.6)); }
+    }
+
+    /* Temel kart stilleri */
+    .cosmic-card {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        transform-style: preserve-3d;
+        transform: perspective(1200px);
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 3px 10px rgba(0, 0, 0, 0.07);
+        height: 350px;
+        background: rgba(30, 41, 59, 0.3);
+        border: 1px solid rgba(147, 51, 234, 0.2);
+    }
+
+    .cosmic-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 60%);
+        z-index: 2;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    .cosmic-card:hover {
+        transform: perspective(1200px) rotateY(10deg) rotateX(5deg) scale(1.05);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2), 0 10px 20px rgba(147, 51, 234, 0.2);
+    }
+
+    .cosmic-card:hover::before {
+        opacity: 1;
+    }
+
+    .cosmic-card-image {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .cosmic-card:hover .cosmic-card-image {
+        transform: scale(1.08);
+    }
+
+    .cosmic-card-content {
+        position: relative;
+        padding: 20px;
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(10px);
+        border-bottom-left-radius: 18px;
+        border-bottom-right-radius: 18px;
+        transform: translateZ(20px);
+        transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        height: calc(100% - 220px);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .cosmic-card:hover .cosmic-card-content {
+        transform: translateZ(50px);
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(79, 70, 129, 0.9) 100%);
+    }
+
+    .cosmic-card-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #ffffff;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .cosmic-card-creator {
+        font-size: 0.95rem;
+        color: #d8b4fe;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .cosmic-card-description {
+        font-size: 1rem;
+        color: #e2e8f0;
+        margin-bottom: 15px;
+        line-height: 1.4;
+    }
+
+    .cosmic-card-link {
+        display: inline-flex;
+        align-items: center;
+        color: #d8b4fe;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .cosmic-card-link svg {
+        width: 16px;
+        height: 16px;
+        margin-left: 5px;
+        transition: transform 0.3s ease;
+    }
+
+    .cosmic-card:hover .cosmic-card-link {
+        color: #f0abfc;
+    }
+
+    .cosmic-card:hover .cosmic-card-link svg {
+        transform: translateX(8px);
+    }
+
+    .cosmic-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .cosmic-card-chip {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        border-radius: 12px;
+        background: rgba(147, 51, 234, 0.15);
+        color: #d8b4fe;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .cosmic-card-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-published {
+        background: rgba(34, 197, 94, 0.2);
+        color: rgb(34, 197, 94);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .status-private {
+        background: rgba(100, 116, 139, 0.2);
+        color: rgb(100, 116, 139);
+        border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+
+    .status-draft {
+        background: rgba(234, 179, 8, 0.2);
+        color: rgb(234, 179, 8);
+        border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+
+    .cosmic-card-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+
+    .cosmic-card-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="glass-card p-8 rounded-xl mb-8">
+        <div class="flex flex-col md:flex-row items-start gap-8">
+            <div class="w-full md:w-1/3">
+                <div class="ice-effect rounded-full w-40 h-40 overflow-hidden mx-auto">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800 text-4xl font-bold">
+                            {{ user.username|make_list|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-6 text-center md:text-left">
+                    <h2 class="text-2xl font-bold text-gray-800">{{ user.get_full_name|default:user.username }}</h2>
+                    {% if user.profile.website %}
+                        <a href="{{ user.profile.website }}" target="_blank" class="text-purple-600 hover:text-purple-800 text-sm flex items-center justify-center md:justify-start mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            Website
+                        </a>
+                    {% endif %}
+                    <p class="text-gray-600 mt-3">Üyelik: {{ user.date_joined|date:"d M Y" }}</p>
+                </div>
+                
+                {% if user == request.user %}
+                <div class="mt-6">
+                    <a href="{% url 'core:profile_edit' %}" class="btn block text-center w-full">
+                        Profili Düzenle
+                    </a>
+                </div>
+                {% endif %}
+                
+                <div class="mt-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Hakkında</h3>
+                    <div class="glass p-4 rounded-lg">
+                        {% if user.profile.bio %}
+                            <p class="text-gray-700 whitespace-pre-wrap">{{ user.profile.bio }}</p>
+                        {% else %}
+                            <p class="text-gray-500 italic">Henüz bir biyografi yazılmamış.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="w-full md:w-2/3 mt-8 md:mt-0">
+                <!-- 3D Kozmik Kredi Kartı -->
+                <div class="credit-card-container mb-8">
+                    <div class="credit-card">
+                        <div class="credit-card-front">
+                            <div class="nebula-effect"></div>
+                            <div class="star-field"></div>
+                            <div class="holographic-effect"></div>
+                            
+                            <div class="credit-card-logo">
+                                <div class="credit-card-logo-symbol"></div>
+                                <div class="credit-card-logo-text">
+                                    <div class="credit-card-logo-text-top">NEBULA</div>
+                                    <div class="credit-card-logo-text-bottom">FLUX</div>
+                                </div>
+                            </div>
+                            
+                            <div class="credit-card-chip"></div>
+                            
+                            <div class="credit-card-number">{{ user.id|stringformat:"04d" }} •••• •••• {{ user.date_joined|date:"jmY"|slice:"-4:" }}</div>
+                            
+                            <div class="credit-card-name">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="credit-card-expiry">Üyelik: {{ user.date_joined|date:"m/y" }}</div>
+                            
+                            <div class="credit-card-id">TXID: {{ user.id|add:1000 }}{{ user.username|length }}{{ user.date_joined|date:"dmY"|slice:"-6:" }}</div>
+                        </div>
+                        
+                        <div class="credit-card-back">
+                            <div class="nebula-effect"></div>
+                            <div class="star-field"></div>
+                            <div class="holographic-effect"></div>
+                            
+                            <div class="credit-card-back-strip"></div>
+                            
+                            <div class="credit-card-cvc">{{ user.id|add:100 }}</div>
+                            
+                            <div class="credit-card-back-info">
+                                Bu kart, {{ user.username }} adlı kullanıcıya aittir. 
+                                Bu benzersiz kimlik bilgisi, kullanıcının Trix platformundaki dijital varlığını temsil eder.
+                            </div>
+                            
+                            <div class="credit-card-id">TXID: {{ user.id|add:1000 }}{{ user.username|length }}{{ user.date_joined|date:"dmY"|slice:"-6:" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Tasarımlar</h2>
+            {% if user == request.user %}
+                <a href="{% url 'core:studio' %}" class="btn">
+                    Yeni Tasarım Oluştur
+                </a>
+            {% endif %}
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% if designs %}
+                {% for design in designs %}
+                    <div class="cosmic-card card-3d">
+                        {% if design.status == 'published' %}
+                            <div class="cosmic-card-status status-published">Yayında</div>
+                        {% elif design.status == 'private' %}
+                            <div class="cosmic-card-status status-private">Özel</div>
+                        {% else %}
+                            <div class="cosmic-card-status status-draft">Taslak</div>
+                        {% endif %}
+                        
+                        <img src="{{ design.image.url }}" alt="{{ design.title }}" class="cosmic-card-image">
+                        
+                        <div class="cosmic-card-content">
+                            <div>
+                                <h3 class="cosmic-card-title">{{ design.title }}</h3>
+                                <div class="cosmic-card-creator">
+                                    <div class="cosmic-card-avatar">
+                                        {% if design.owner.profile.avatar %}
+                                            <img src="{{ design.owner.profile.avatar.url }}" alt="{{ design.owner.username }}">
+                                        {% else %}
+                                            <div class="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800 text-xs font-bold">
+                                                {{ design.owner.username|make_list|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <span>{{ design.owner.get_full_name|default:design.owner.username }}</span>
+                                </div>
+                                
+                                {% if design.description %}
+                                    <p class="cosmic-card-description line-clamp-2">{{ design.description }}</p>
+                                {% endif %}
+                                
+                                <div class="cosmic-card-meta">
+                                    {% if design.style %}
+                                        <span class="cosmic-card-chip">{{ design.style }}</span>
+                                    {% endif %}
+                                    {% if design.model_used %}
+                                        <span class="cosmic-card-chip">{{ design.model_used }}</span>
+                                    {% endif %}
+                                    {% if design.token_id %}
+                                        <span class="cosmic-card-chip">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            {{ design.token_id|slice:":6" }}...
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <a href="{% url 'core:design_detail' design.id %}" class="cosmic-card-link">
+                                Detayları Gör
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-span-full">
+                    <div class="glass p-8 rounded-lg text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">Henüz Tasarım Yok</h3>
+                        <p class="text-gray-600 mb-6">Bu kullanıcı henüz bir tasarım oluşturmamış.</p>
+                        
+                        {% if user == request.user %}
+                            <a href="{% url 'core:studio' %}" class="btn">
+                                İlk Tasarımını Oluştur
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 3D Kart efekti - tasarım kartları için
+        const cards = document.querySelectorAll('.card-3d');
+        
+        cards.forEach(card => {
+            card.addEventListener('mousemove', function(e) {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const angleX = (y - centerY) / 15;
+                const angleY = (centerX - x) / 15;
+                
+                card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale3d(1.05, 1.05, 1.05)`;
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+            });
+        });
+    });
+</script>
+{% endblock %} 

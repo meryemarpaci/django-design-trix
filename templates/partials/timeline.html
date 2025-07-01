@@ -1,0 +1,289 @@
+{% load static %}
+
+<section id="timeline" class="py-20 relative">
+    <div class="container mx-auto px-6">
+        <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center gradient-text ice-text">Tasarım Yolculuğumuz</h2>
+        
+        <div class="timeline-container">
+            <div class="timeline-track"></div>
+            
+            <div class="timeline-item" id="timeline-1">
+                <div class="timeline-number">
+                    <div class="frost-number">1</div>
+                </div>
+                <div class="timeline-content">
+                    <div class="ice-crystal-container">
+                        <div class="ice-crystal-shard"></div>
+                        <div class="ice-crystal-glow"></div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 gradient-text">Konsept Geliştirme</h3>
+                    <div class="frost-divider"></div>
+                    <p class="text-gray-600 mb-4">Yaratıcı fikirlerden ilham alarak dijital dünyada hayat bulan konseptler geliştiriyoruz.</p>
+                    <div class="ice-badge">Keşif</div>
+                </div>
+            </div>
+            
+            <div class="timeline-item" id="timeline-2">
+                <div class="timeline-number">
+                    <div class="frost-number">2</div>
+                </div>
+                <div class="timeline-content">
+                    <div class="ice-crystal-container right">
+                        <div class="ice-crystal-shard blue"></div>
+                        <div class="ice-crystal-glow blue"></div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 gradient-text">3D Modelleme</h3>
+                    <div class="frost-divider"></div>
+                    <p class="text-gray-600 mb-4">Gelişmiş teknolojiler kullanarak detaylı ve etkileyici 3D modeller oluşturuyoruz.</p>
+                    <div class="ice-badge">Tasarım</div>
+                </div>
+            </div>
+            
+            <div class="timeline-item" id="timeline-3">
+                <div class="timeline-number">
+                    <div class="frost-number">3</div>
+                </div>
+                <div class="timeline-content">
+                    <div class="ice-crystal-container">
+                        <div class="ice-crystal-shard purple"></div>
+                        <div class="ice-crystal-glow purple"></div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 gradient-text">Doku ve Materyal</h3>
+                    <div class="frost-divider"></div>
+                    <p class="text-gray-600 mb-4">Gerçekçi dokular ve materyallerle modellerinize hayat katıyoruz.</p>
+                    <div class="ice-badge">Detay</div>
+                </div>
+            </div>
+            
+            <div class="timeline-item" id="timeline-4">
+                <div class="timeline-number">
+                    <div class="frost-number">4</div>
+                </div>
+                <div class="timeline-content">
+                    <div class="ice-crystal-container right">
+                        <div class="ice-crystal-shard pink"></div>
+                        <div class="ice-crystal-glow pink"></div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 gradient-text">Animasyon</h3>
+                    <div class="frost-divider"></div>
+                    <p class="text-gray-600 mb-4">Akıcı hareketler ve etkileyici animasyonlarla projelerinizi dinamikleştiriyoruz.</p>
+                    <div class="ice-badge">Hareket</div>
+                </div>
+            </div>
+            
+            <div class="timeline-item" id="timeline-5">
+                <div class="timeline-number">
+                    <div class="frost-number">5</div>
+                </div>
+                <div class="timeline-content">
+                    <div class="ice-crystal-container">
+                        <div class="ice-crystal-shard"></div>
+                        <div class="ice-crystal-glow"></div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 gradient-text">Görselleştirme</h3>
+                    <div class="frost-divider"></div>
+                    <p class="text-gray-600 mb-4">Yüksek kaliteli render ve görselleştirmelerle projenizi taçlandırıyoruz.</p>
+                    <div class="ice-badge">Sunum</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .ice-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: linear-gradient(135deg, 
+                rgba(147, 51, 234, 0.2) 0%, 
+                rgba(167, 139, 250, 0.2) 100%);
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4c1d95;
+            box-shadow: 
+                0 2px 10px rgba(147, 51, 234, 0.1),
+                inset 0 0 5px rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .ice-crystal-container {
+            position: absolute;
+            top: 20px;
+            right: -50px;
+            width: 100px;
+            height: 100px;
+            pointer-events: none;
+            perspective: 800px;
+            z-index: 5;
+        }
+        
+        .ice-crystal-container.right {
+            left: -50px;
+            right: auto;
+        }
+        
+        .ice-crystal-shard {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.1));
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            transform-style: preserve-3d;
+            transform: rotateX(45deg) rotateZ(45deg);
+            animation: crystal-float 3s ease-in-out infinite alternate;
+            box-shadow: 
+                0 0 20px rgba(147, 51, 234, 0.3),
+                0 0 40px rgba(255, 255, 255, 0.2);
+        }
+        
+        .ice-crystal-glow {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(147, 51, 234, 0.5) 30%,
+                transparent 70%
+            );
+            filter: blur(15px);
+            transform: translate(-10px, -10px);
+            opacity: 0.6;
+            mix-blend-mode: screen;
+        }
+        
+        .ice-crystal-glow.blue {
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(37, 99, 235, 0.5) 30%,
+                transparent 70%
+            );
+        }
+        
+        .ice-crystal-glow.purple {
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(147, 51, 234, 0.5) 30%,
+                transparent 70%
+            );
+        }
+        
+        .ice-crystal-glow.pink {
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(236, 72, 153, 0.5) 30%,
+                transparent 70%
+            );
+        }
+        
+        .ice-crystal-shard::before,
+        .ice-crystal-shard::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.05));
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            transform: translateZ(-10px) rotateY(180deg);
+        }
+        
+        .ice-crystal-shard::after {
+            transform: translateZ(10px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+        }
+        
+        .ice-crystal-shard.purple {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.7), rgba(147, 51, 234, 0.1));
+            box-shadow: 
+                0 0 20px rgba(147, 51, 234, 0.5),
+                0 0 40px rgba(147, 51, 234, 0.3);
+        }
+        
+        .ice-crystal-shard.blue {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.7), rgba(37, 99, 235, 0.1));
+            box-shadow: 
+                0 0 20px rgba(37, 99, 235, 0.5),
+                0 0 40px rgba(37, 99, 235, 0.3);
+        }
+        
+        .ice-crystal-shard.pink {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.7), rgba(236, 72, 153, 0.1));
+            box-shadow: 
+                0 0 20px rgba(236, 72, 153, 0.5),
+                0 0 40px rgba(236, 72, 153, 0.3);
+        }
+        
+        @keyframes crystal-float {
+            0% {
+                transform: rotateX(45deg) rotateZ(45deg) translateY(0);
+            }
+            100% {
+                transform: rotateX(45deg) rotateZ(45deg) translateY(-15px) rotateY(180deg);
+            }
+        }
+        
+        .ice-text {
+            text-shadow: 
+                0 0 5px rgba(255, 255, 255, 0.8),
+                0 0 10px rgba(147, 51, 234, 0.5),
+                0 0 20px rgba(147, 51, 234, 0.3);
+        }
+        
+        .timeline-content {
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(147, 51, 234, 0.15);
+        }
+        
+        .frost-number {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.9));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 5px rgba(147, 51, 234, 0.5));
+        }
+        
+        .frost-divider {
+            height: 2px;
+            width: 50px;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, 
+                rgba(147, 51, 234, 0.7), 
+                rgba(236, 72, 153, 0.7));
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+        }
+        
+        .frost-divider::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.8), 
+                transparent);
+            animation: frost-slide 3s infinite;
+        }
+        
+        @keyframes frost-slide {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+    </style>
+</section> 

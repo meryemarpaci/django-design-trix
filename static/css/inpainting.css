@@ -1,0 +1,428 @@
+/* Additional Inpainting Styles */
+
+.ai-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+.ai-status small {
+    color: var(--studio-text-muted);
+}
+
+.inpainting-workspace {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    height: calc(100% - 120px);
+    margin-top: 20px;
+}
+
+.canvas-section, .controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.canvas-container {
+    position: relative;
+    background: rgba(15, 10, 42, 0.3);
+    border: 1px solid rgba(147, 51, 234, 0.2);
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.canvas-stack {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#inpainting-canvas {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#mask-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: all;
+    z-index: 2;
+    border-radius: 8px;
+}
+
+.tool-selection {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.tool-btn {
+    padding: 10px 15px;
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    background: rgba(15, 23, 42, 0.7);
+    color: #cbd5e1;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.tool-btn.active {
+    background: rgba(147, 51, 234, 0.4);
+    color: #f8fafc;
+    border-color: rgba(147, 51, 234, 0.6);
+    box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+}
+
+.tool-btn:hover:not(.active) {
+    background: rgba(147, 51, 234, 0.2);
+    color: #d8b4fe;
+    border-color: rgba(147, 51, 234, 0.4);
+}
+
+.brush-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(147, 51, 234, 0.2);
+}
+
+.brush-controls label {
+    font-size: 0.9rem;
+    color: #f8fafc;
+    white-space: nowrap;
+}
+
+.brush-controls input[type="range"] {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(147, 51, 234, 0.2);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.brush-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--studio-accent);
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(147, 51, 234, 0.5);
+}
+
+.brush-controls input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--studio-accent);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 5px rgba(147, 51, 234, 0.5);
+}
+
+.brush-controls span {
+    min-width: 30px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--studio-accent-light);
+}
+
+.range-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 8px 0;
+}
+
+.range-control label {
+    min-width: 120px;
+    font-size: 0.9rem;
+    color: #f8fafc;
+    font-weight: 500;
+}
+
+.range-control input[type="range"] {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(147, 51, 234, 0.2);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.range-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--studio-accent);
+    cursor: pointer;
+}
+
+.range-control input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--studio-accent);
+    cursor: pointer;
+    border: none;
+}
+
+.range-control span {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--studio-accent-light);
+    font-size: 0.9rem;
+}
+
+.status-success {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.status-error {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.status-loading {
+    color: var(--studio-accent-light);
+    font-weight: 500;
+}
+
+#inpainting-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 10, 42, 0.95);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 100;
+    border-radius: 15px;
+}
+
+#inpainting-loading p {
+    margin-top: 15px;
+    color: var(--studio-accent-light);
+    font-weight: 500;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(147, 51, 234, 0.2);
+    border-top: 4px solid var(--studio-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#inpainting-error {
+    display: none;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.error-message {
+    margin: 0;
+    font-weight: 500;
+}
+
+#inpainting-result {
+    margin-top: 15px;
+}
+
+.result-image {
+    text-align: center;
+}
+
+.result-image img {
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(147, 51, 234, 0.3);
+}
+
+.result-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.result-actions .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.result-actions .btn-primary {
+    background: linear-gradient(135deg, var(--studio-accent) 0%, var(--studio-accent-dark) 100%);
+    color: white;
+}
+
+.result-actions .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(147, 51, 234, 0.4);
+}
+
+.result-actions .btn-secondary {
+    background: rgba(147, 51, 234, 0.2);
+    color: var(--studio-accent-light);
+    border: 1px solid rgba(147, 51, 234, 0.3);
+}
+
+.result-actions .btn-secondary:hover {
+    background: rgba(147, 51, 234, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Tool content switching */
+.tool-content {
+    display: none;
+    height: 100%;
+}
+
+.tool-content.active {
+    display: block;
+}
+
+/* Tool list styling for header */
+.tool-header .tool-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+    gap: 10px;
+}
+
+.tool-header .tool-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    margin-bottom: 0;
+}
+
+.tool-header .tool-item:hover {
+    background: rgba(147, 51, 234, 0.1);
+    border-color: rgba(147, 51, 234, 0.2);
+}
+
+.tool-header .tool-item.active {
+    background: rgba(147, 51, 234, 0.15);
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    box-shadow: var(--studio-glow-purple);
+}
+
+.tool-header .tool-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--studio-accent-light);
+}
+
+.tool-header .tool-item.active .tool-icon {
+    color: white;
+}
+
+.tool-header .tool-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.tool-header .tool-item span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .inpainting-workspace {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .canvas-container {
+        min-height: 300px;
+    }
+    
+    .tool-header .tool-list {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .tool-selection {
+        justify-content: center;
+    }
+    
+    .brush-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .range-control {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+    }
+    
+    .range-control label {
+        min-width: auto;
+    }
+    
+    .result-actions {
+        flex-direction: column;
+    }
+} 

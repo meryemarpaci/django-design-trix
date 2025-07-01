@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}triX - Yaratıcı 3D Tasarım Platformu{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-gradient"></div>
+    <div class="container mx-auto px-4 md:px-6 py-20">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-12">
+            <div class="md:w-1/2 text-center md:text-left">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 glow-text">
+                    <span class="gradient-text">Yaratıcı 3D Tasarım</span> Deneyimini Keşfedin
+                </h1>
+                <p class="text-xl text-gray-300 mb-8">
+                    Elmas parlaklığında, şeffaf ve camsı arayüzler ile sınırları zorlayan 3D tasarımlar oluşturun.
+                </p>
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                    <a href="{% url 'core:studio' %}" class="btn py-3 px-8 glass diamond-shine rounded-full text-white font-medium">
+                        Studio
+                    </a>
+                    <a href="/contact" class="btn py-3 px-8 glass diamond-shine rounded-full text-white font-medium">
+                        İletişime Geçin
+                    </a>
+                </div>
+            </div>
+            
+            <div class="md:w-1/2">
+                <!-- 3D Interactive Element -->
+                <div id="webgl-container" class="webgl-container glass glow">
+                    <!-- Three.js will render here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="section">
+    <div class="container mx-auto px-4 md:px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 gradient-text glow-text">Olağanüstü Özellikler</h2>
+            <div class="gradient-divider mx-auto" style="max-width: 200px;"></div>
+            <p class="text-xl text-gray-300 mt-4">Tasarım sürecinizi dönüştürecek modern araçlar</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="glass-card fade-in card-3d p-6">
+                <div class="text-center mb-4">
+                    <div class="h-20 w-20 mx-auto bg-purple-600 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-center gradient-text">3D Modelleme</h3>
+                <div class="gradient-divider"></div>
+                <p class="text-gray-300">Sezgisel kontroller ve gerçek zamanlı geri bildirimlerle karmaşık 3D modeller oluşturun.</p>
+            </div>
+            
+            <div class="glass-card fade-in card-3d p-6">
+                <div class="text-center mb-4">
+                    <div class="h-20 w-20 mx-auto bg-indigo-600 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-center gradient-text">Yapay Zeka Desteği</h3>
+                <div class="gradient-divider"></div>
+                <p class="text-gray-300">Gelişmiş yapay zeka algoritmaları ile tasarımlarınızı mükemmelleştirin ve yaratıcı fikirler edinin.</p>
+            </div>
+            
+            <div class="glass-card fade-in card-3d p-6">
+                <div class="text-center mb-4">
+                    <div class="h-20 w-20 mx-auto bg-pink-600 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-center gradient-text">Gerçek Zamanlı İşbirliği</h3>
+                <div class="gradient-divider"></div>
+                <p class="text-gray-300">Diğer tasarımcılarla birlikte gerçek zamanlı olarak 3D projeleriniz üzerinde çalışın.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Projects Showcase -->
+<section class="section bg-gradient-to-b from-transparent to-purple-900/10">
+    <div class="container mx-auto px-4 md:px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 gradient-text glow-text">İlham Verici Projeler</h2>
+            <div class="gradient-divider mx-auto" style="max-width: 200px;"></div>
+            <p class="text-xl text-gray-300 mt-4">Platformumuzda oluşturulan en etkileyici tasarımları keşfedin</p>
+        </div>
+        
+        <div class="dynamic-content-container">
+            <!-- Dynamic content will be loaded here via JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section">
+    <div class="container mx-auto px-4 md:px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 gradient-text glow-text">Kullanıcı Görüşleri</h2>
+            <div class="gradient-divider mx-auto" style="max-width: 200px;"></div>
+            <p class="text-xl text-gray-300 mt-4">Tasarımcıların triX deneyimleri</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="glass-card fade-in p-6">
+                <div class="flex items-center mb-4">
+                    <div class="h-12 w-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold mr-4">
+                        AS
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white">Ahmet Sarı</h4>
+                        <p class="text-gray-400">Ürün Tasarımcısı</p>
+                    </div>
+                </div>
+                <div class="gradient-divider"></div>
+                <p class="text-gray-300 italic">"triX ile 3D tasarımlarımı çok daha hızlı ve etkileyici şekilde oluşturabiliyorum. Şeffaf ve parlak arayüz tasarımı çalışırken ilham veriyor."</p>
+            </div>
+            
+            <div class="glass-card fade-in p-6">
+                <div class="flex items-center mb-4">
+                    <div class="h-12 w-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold mr-4">
+                        MK
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white">Melis Kaya</h4>
+                        <p class="text-gray-400">Dijital Sanatçı</p>
+                    </div>
+                </div>
+                <div class="gradient-divider"></div>
+                <p class="text-gray-300 italic">"Yaratıcı süreçlerimi tamamen değiştiren bir platform. Camsı arayüz ve elmas parlaklığındaki efektler harika bir kullanıcı deneyimi sunuyor."</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="section">
+    <div class="container mx-auto px-4 md:px-6">
+        <div class="glass p-8 md:p-12 rounded-2xl text-center reveal-animation">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 gradient-text glow-text">Yaratıcı Yolculuğunuza Başlayın</h2>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                triX ile sınırlarınızı aşın ve hayalinizdeki 3D tasarımları gerçeğe dönüştürün.
+            </p>
+            <a href="/register" class="btn py-4 px-10 glass diamond-shine rounded-full text-white font-medium text-lg">
+                Hemen Ücretsiz Kaydolun
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %} 

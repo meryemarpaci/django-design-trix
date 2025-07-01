@@ -300,10 +300,19 @@ def profile_view(request, username):
     else:
         designs = Design.objects.filter(user=user, status='published').order_by('-created_at')
     
+    # Check if current user is following this profile user
+    is_following = False
+    if request.user.is_authenticated and request.user != user:
+        is_following = Follow.objects.filter(
+            follower=request.user, 
+            following=user
+        ).exists()
+    
     context = {
         'user': user,
         'designs': designs,
         'profile': profile,
+        'is_following': is_following,
     }
     return render(request, 'auth/profile.html', context)
 

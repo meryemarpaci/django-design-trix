@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from django.urls import reverse
 import hashlib
@@ -289,3 +289,28 @@ def create_token_metadata(sender, instance, created, **kwargs):
                 design=instance,
                 token_id=instance.token_id
             )
+
+@receiver(post_delete, sender=Follow)
+def update_follow_counts_on_delete(sender, instance, **kwargs):
+    """Update follower counts when a follow relationship is deleted"""
+    try:
+        # Update follower count
+        instance.following.profile.followers_count = instance.following.followers.count()
+        instance.following.profile.save(update_fields=['followers_count'])
+        
+        # Update following count
+        instance.follower.profile.following_count = instance.follower.following.count()
+        instance.follower.profile.save(update_fields=['following_count'])
+        
+        logger.info(f"Updated follow counts after {instance.follower.username} unfollowed {instance.following.username}")
+    except Exception as e:
+        logger.error(f"Error updating follow counts on delete: {e}")
+
+@receiver(post_delete, sender=Like)
+def update_design_likes_count_on_delete(sender, instance, **kwargs):
+    """Update likes count when a like is deleted"""
+    try:
+        instance.design.likes_count = instance.design.likes.count()
+        instance.design.save(update_fields=['likes_count'])
+    except Exception as e:
+        logger.error(f"Error updating likes count on delete: {e}")

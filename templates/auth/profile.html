@@ -452,6 +452,22 @@
                         </a>
                     {% endif %}
                     <p class="text-gray-600 mt-3">Üyelik: {{ user.date_joined|date:"d M Y" }}</p>
+                    
+                    <!-- Follow Stats -->
+                    <div class="flex space-x-6 mt-4 justify-center md:justify-start">
+                        <div class="text-center">
+                            <div class="text-xl font-bold text-gray-800 followers-count">{{ user.profile.followers_count }}</div>
+                            <div class="text-sm text-gray-600">Followers</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xl font-bold text-gray-800">{{ user.profile.following_count }}</div>
+                            <div class="text-sm text-gray-600">Following</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xl font-bold text-gray-800">{{ user.profile.designs_count }}</div>
+                            <div class="text-sm text-gray-600">Designs</div>
+                        </div>
+                    </div>
                 </div>
                 
                 {% if user == request.user %}
@@ -459,6 +475,13 @@
                     <a href="{% url 'core:profile_edit' %}" class="btn block text-center w-full">
                         Profili Düzenle
                     </a>
+                </div>
+                {% elif request.user.is_authenticated %}
+                <div class="mt-6">
+                    <button id="follow-btn" data-username="{{ user.username }}"
+                            class="btn block text-center w-full {% if is_following %}bg-gray-500 hover:bg-gray-600{% else %}bg-purple-600 hover:bg-purple-700{% endif %} text-white transition">
+                        {% if is_following %}Following{% else %}Follow{% endif %}
+                    </button>
                 </div>
                 {% endif %}
                 
@@ -639,6 +662,50 @@
                 card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
             });
         });
+        
+        // Follow functionality
+        const followBtn = document.getElementById('follow-btn');
+        if (followBtn) {
+            followBtn.addEventListener('click', async function() {
+                const username = this.dataset.username;
+                
+                try {
+                    const response = await fetch(`/api/follow/${username}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.following) {
+                            this.textContent = 'Following';
+                            this.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                            this.classList.add('bg-gray-500', 'hover:bg-gray-600');
+                        } else {
+                            this.textContent = 'Follow';
+                            this.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                            this.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                        }
+                        
+                        // Update follower count if element exists
+                        const followerCountEl = document.querySelector('.followers-count');
+                        if (followerCountEl) {
+                            followerCountEl.textContent = data.followers_count;
+                        }
+                    } else {
+                        console.error('Follow failed:', data.error);
+                        alert(data.error || 'Takip işlemi başarısız oldu');
+                    }
+                } catch (error) {
+                    console.error('Follow failed:', error);
+                    alert('Takip işlemi başarısız oldu');
+                }
+            });
+        }
     });
 </script>
 {% endblock %} 

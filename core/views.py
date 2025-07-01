@@ -228,11 +228,30 @@ def register_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Kayıt başarılı! triX'e hoş geldiniz!")
-            return redirect('core:home')
-        messages.error(request, "Kayıt başarısız. Lütfen hataları düzeltin.")
+            try:
+                user = form.save()
+                # Ensure the user was saved properly
+                user.refresh_from_db()
+                logger.info(f"User {user.username} created successfully with ID: {user.id}")
+                
+                # Ensure profile is created
+                profile, created = UserProfile.objects.get_or_create(user=user)
+                if created:
+                    logger.info(f"Profile created for user {user.username}")
+                
+                login(request, user)
+                messages.success(request, f"Kayıt başarılı! triX'e hoş geldiniz, {user.username}!")
+                return redirect('core:home')
+                
+            except Exception as e:
+                logger.error(f"Error creating user: {e}")
+                messages.error(request, f"Kayıt sırasında bir hata oluştu: {e}")
+        else:
+            # Log form errors for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    logger.error(f"Form error in {field}: {error}")
+            messages.error(request, "Kayıt başarısız. Lütfen hataları düzeltin.")
     else:
         form = UserCreationForm()
     

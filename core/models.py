@@ -6,6 +6,10 @@ from django.urls import reverse
 import hashlib
 import time
 from datetime import datetime
+import logging
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 # Create your models here.
 class UserProfile(models.Model):
@@ -198,12 +202,26 @@ class TokenMetadata(models.Model):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        try:
+            profile, profile_created = UserProfile.objects.get_or_create(user=instance)
+            if profile_created:
+                logger.info(f"Profile created successfully for user: {instance.username} (ID: {instance.id})")
+            else:
+                logger.info(f"Profile already exists for user: {instance.username} (ID: {instance.id})")
+        except Exception as e:
+            logger.error(f"Error creating profile for user {instance.username}: {e}")
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, 'profile'):
-        instance.profile.save()
+    try:
+        if hasattr(instance, 'profile'):
+            instance.profile.save()
+        else:
+            # If profile doesn't exist, create it
+            UserProfile.objects.get_or_create(user=instance)
+            logger.info(f"Profile created for existing user: {instance.username}")
+    except Exception as e:
+        logger.error(f"Error saving profile for user {instance.username}: {e}")
 
 @receiver(post_save, sender=Like)
 def update_design_likes_count(sender, instance, created, **kwargs):

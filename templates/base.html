@@ -24,6 +24,23 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+    <!-- Header with logout -->
+    {% if user.is_authenticated %}
+    <div class="fixed top-0 right-0 z-50 p-4">
+        <div class="flex items-center space-x-3">
+            <span class="text-sm text-gray-600 hidden md:block">Merhaba, {{ user.username }}!</span>
+            <a href="{% url 'core:logout' %}" 
+               class="ice-effect px-4 py-2 rounded-lg text-sm text-red-600 hover:text-red-800 transition-colors"
+               onclick="return confirm('Çıkış yapmak istediğinizden emin misiniz?')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span class="hidden md:inline">Çıkış</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Navbar -->
     {% include 'partials/navbar.html' %}
     
@@ -36,15 +53,18 @@
                 </svg>
             </button>
             
-            <a href="/" class="glass-card px-10 py-3 w-64 text-center">Home</a>
-            <a href="/about" class="glass-card px-10 py-3 w-64 text-center">About</a>
-            <a href="/contact" class="glass-card px-10 py-3 w-64 text-center">Contact</a>
+            <a href="{% url 'core:home' %}" class="glass-card px-10 py-3 w-64 text-center">Ana Sayfa</a>
+            <a href="{% url 'core:about' %}" class="glass-card px-10 py-3 w-64 text-center">Hakkında</a>
+            <a href="{% url 'core:contact' %}" class="glass-card px-10 py-3 w-64 text-center">İletişim</a>
             {% if user.is_authenticated %}
-                <a href="/profile" class="glass-card px-10 py-3 w-64 text-center">Profile</a>
-                <a href="/logout" class="glass-card px-10 py-3 w-64 text-center">Logout</a>
+                <a href="{% url 'core:profile' user.username %}" class="glass-card px-10 py-3 w-64 text-center">Profilim</a>
+                <a href="{% url 'core:studio' %}" class="glass-card px-10 py-3 w-64 text-center">Studio</a>
+                <a href="{% url 'core:logout' %}" 
+                   class="glass-card px-10 py-3 w-64 text-center bg-red-100 text-red-600"
+                   onclick="return confirm('Çıkış yapmak istediğinizden emin misiniz?')">Çıkış Yap</a>
             {% else %}
-                <a href="/login" class="glass-card px-10 py-3 w-64 text-center">Login</a>
-                <a href="/register" class="glass-card px-10 py-3 w-64 text-center">Register</a>
+                <a href="{% url 'core:login' %}" class="glass-card px-10 py-3 w-64 text-center">Giriş</a>
+                <a href="{% url 'core:register' %}" class="glass-card px-10 py-3 w-64 text-center">Kayıt Ol</a>
             {% endif %}
         </div>
     </div>

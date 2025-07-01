@@ -1,225 +1,239 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ design.title }} - triX Design{% endblock %}
+{% block title %}{{ design.title }} - triX{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-    <div class="glass-card p-8 rounded-xl">
-        <div class="flex flex-col lg:flex-row gap-8">
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
             <!-- Design Image -->
-            <div class="w-full lg:w-2/3">
-                <div class="glass-card p-2 rounded-xl overflow-hidden shadow-lg">
-                    <img src="{{ design.image.url }}" alt="{{ design.title }}" class="w-full h-auto rounded-lg">
-                </div>
-                
-                {% if user == design.user %}
-                <div class="mt-4 flex justify-end space-x-4">
-                    <a href="{% url 'core:design_edit' design.id %}" class="btn bg-blue-500 hover:bg-blue-600 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Düzenle
-                    </a>
-                    <button type="button" id="delete-btn" class="btn bg-red-500 hover:bg-red-600 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Sil
-                    </button>
-                </div>
-                {% endif %}
+            <div class="glass rounded-xl overflow-hidden mb-6">
+                <img src="{{ design.image.url }}" alt="{{ design.title }}" 
+                     class="w-full h-auto object-cover">
             </div>
             
             <!-- Design Info -->
-            <div class="w-full lg:w-1/3">
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ design.title }}</h1>
-                
-                <div class="flex items-center mb-4">
-                    <a href="{% url 'core:profile' design.user.username %}" class="flex items-center">
-                        <div class="ice-effect rounded-full w-8 h-8 overflow-hidden mr-2">
-                            {% if design.user.profile.avatar %}
-                                <img src="{{ design.user.profile.avatar.url }}" alt="{{ design.user.username }}" class="w-full h-full object-cover">
-                            {% else %}
-                                <div class="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800 text-sm font-bold">
-                                    {{ design.user.username|make_list|first|upper }}
-                                </div>
+            <div class="glass p-6 rounded-xl mb-6">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <h1 class="text-3xl font-bold gradient-text mb-2">{{ design.title }}</h1>
+                        
+                        <!-- Stats -->
+                        <div class="flex items-center space-x-6 text-gray-600 mb-4">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                <span id="views-count">{{ design.views_count }}</span> views
+                            </div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                                </svg>
+                                <span id="likes-count">{{ design.likes_count }}</span> likes
+                            </div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"/>
+                                </svg>
+                                <span id="comments-count">{{ design.comments_count }}</span> comments
+                            </div>
+                            <span class="text-gray-400">•</span>
+                            <span>{{ design.created_at|date:"d M Y" }}</span>
+                        </div>
+                        
+                        <!-- Description -->
+                        {% if design.description %}
+                            <p class="text-gray-700 mb-4">{{ design.description }}</p>
+                        {% endif %}
+                        
+                        <!-- Tags -->
+                        {% if design.tags %}
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                {% for tag in design.get_tags_list %}
+                                    <a href="{% url 'core:designs_by_tag' tag %}" 
+                                       class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full hover:bg-purple-200 transition">
+                                        #{{ tag }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Tech Details -->
+                        <div class="text-sm text-gray-600 space-y-1">
+                            {% if design.style %}
+                                <div><strong>Style:</strong> {{ design.style }}</div>
+                            {% endif %}
+                            {% if design.model_used %}
+                                <div><strong>Model:</strong> {{ design.model_used }}</div>
+                            {% endif %}
+                            {% if design.prompt %}
+                                <div><strong>Prompt:</strong> {{ design.prompt|truncatewords:20 }}</div>
                             {% endif %}
                         </div>
-                        <span class="text-purple-600 hover:text-purple-800">{{ design.user.username }}</span>
-                    </a>
-                    <span class="mx-2 text-gray-500">•</span>
-                    <span class="text-gray-500">{{ design.created_at|date:"d M Y" }}</span>
-                </div>
-                
-                <div class="mb-6">
-                    {% if design.status == 'published' %}
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                            <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                                <circle cx="4" cy="4" r="3" />
-                            </svg>
-                            Yayında
-                        </span>
-                    {% elif design.status == 'private' %}
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                            <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                                <circle cx="4" cy="4" r="3" />
-                            </svg>
-                            Özel
-                        </span>
-                    {% else %}
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                            <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                                <circle cx="4" cy="4" r="3" />
-                            </svg>
-                            Taslak
-                        </span>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    {% if user.is_authenticated %}
+                        <div class="flex flex-col space-y-2 ml-4">
+                            <!-- Like Button -->
+                            <button id="like-btn" data-design-id="{{ design.id }}" 
+                                    class="flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 {% if is_liked %}bg-red-500 text-white{% else %}bg-gray-200 text-gray-600 hover:bg-red-100{% endif %}">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                                </svg>
+                            </button>
+                            
+                            <!-- Share Button -->
+                            <button onclick="shareDesign()" 
+                                    class="flex items-center justify-center w-12 h-12 bg-gray-200 text-gray-600 rounded-full hover:bg-blue-100 transition">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
+                                </svg>
+                            </button>
+                        </div>
                     {% endif %}
                 </div>
+            </div>
+            
+            <!-- Comments Section -->
+            <div class="glass p-6 rounded-xl">
+                <h3 class="text-xl font-bold mb-4">Comments ({{ design.comments_count }})</h3>
                 
-                {% if design.description %}
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Açıklama</h3>
-                    <div class="glass p-4 rounded-lg">
-                        <p class="text-gray-700 whitespace-pre-wrap">{{ design.description }}</p>
+                <!-- Add Comment Form -->
+                {% if user.is_authenticated %}
+                    <div class="mb-6">
+                        <div class="flex space-x-3">
+                            <div class="flex-shrink-0">
+                                {% if user.profile.avatar %}
+                                    <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" 
+                                         class="w-10 h-10 rounded-full">
+                                {% else %}
+                                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                                        {{ user.username|make_list|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <textarea id="comment-input" 
+                                          placeholder="Add a comment..." 
+                                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                                          rows="3"></textarea>
+                                <div class="mt-2 flex justify-end">
+                                    <button id="submit-comment" 
+                                            data-design-id="{{ design.id }}"
+                                            class="btn px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                                        Post Comment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
                 {% endif %}
                 
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Oluşturma Detayları</h3>
-                    <div class="glass p-4 rounded-lg">
-                        {% if design.prompt %}
-                            <div class="mb-3">
-                                <h4 class="text-sm font-medium text-gray-700 mb-1">Kullanılan Prompt</h4>
-                                <p class="text-gray-600 bg-gray-50 p-2 rounded text-sm">{{ design.prompt }}</p>
+                <!-- Comments List -->
+                <div id="comments-list" class="space-y-4">
+                    {% for comment in comments %}
+                        <div class="comment flex space-x-3" data-comment-id="{{ comment.id }}">
+                            <div class="flex-shrink-0">
+                                {% if comment.user.profile.avatar %}
+                                    <img src="{{ comment.user.profile.avatar.url }}" alt="{{ comment.user.username }}" 
+                                         class="w-8 h-8 rounded-full">
+                                {% else %}
+                                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                        {{ comment.user.username|make_list|first|upper }}
+                                    </div>
+                                {% endif %}
                             </div>
-                        {% endif %}
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            {% if design.style %}
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-1">Stil</h4>
-                                    <p class="text-gray-600">{{ design.style }}</p>
+                            <div class="flex-1">
+                                <div class="bg-gray-50 rounded-lg p-3">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <a href="{% url 'core:profile' comment.user.username %}" 
+                                           class="font-medium text-purple-600 hover:text-purple-800">
+                                            {{ comment.user.get_full_name|default:comment.user.username }}
+                                        </a>
+                                        <span class="text-gray-500 text-sm">{{ comment.created_at|timesince }} ago</span>
+                                    </div>
+                                    <p class="text-gray-700">{{ comment.content }}</p>
                                 </div>
-                            {% endif %}
-                            
-                            {% if design.model_used %}
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-1">Model</h4>
-                                    <p class="text-gray-600">{{ design.model_used }}</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Token ID Bilgisi -->
-                {% if design.token_id %}
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Benzersiz Token</h3>
-                    <div class="glass p-4 rounded-lg">
-                        <div class="mb-2">
-                            <h4 class="text-sm font-medium text-gray-700 mb-1">Token ID</h4>
-                            <div class="flex items-center">
-                                <p class="text-gray-600 bg-gray-50 p-2 rounded text-sm font-mono overflow-hidden">
-                                    {{ design.token_id|slice:":8" }}...{{ design.token_id|slice:"-8:" }}
-                                </p>
-                                <button class="ml-2 text-purple-600 hover:text-purple-800" 
-                                        onclick="copyToClipboard('{{ design.token_id }}')"
-                                        title="Token ID'yi kopyala">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                    </svg>
-                                </button>
                             </div>
                         </div>
-                        
-                        {% if design.token_created_at %}
-                        <div>
-                            <h4 class="text-sm font-medium text-gray-700 mb-1">Oluşturulma Tarihi</h4>
-                            <p class="text-gray-600">{{ design.token_created_at|date:"d M Y H:i:s" }}</p>
-                        </div>
-                        {% endif %}
-                        
-                        {% if design.token_metadata %}
-                        <div class="mt-2">
-                            <div class="flex items-center">
-                                <span class="text-xs px-2 py-1 rounded-full 
-                                           {% if design.token_metadata.blockchain_verified %}
-                                           bg-green-100 text-green-800
-                                           {% else %}
-                                           bg-gray-100 text-gray-800
-                                           {% endif %}">
-                                    {% if design.token_metadata.blockchain_verified %}
-                                    <svg class="inline-block h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    Doğrulanmış
-                                    {% else %}
-                                    Doğrulanmamış
-                                    {% endif %}
-                                </span>
-                                <span class="ml-2 text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800">
-                                    {{ design.token_metadata.hash_algorithm }}
-                                </span>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-                
-                <!-- Download and Share Buttons -->
-                <div class="flex flex-col space-y-3">
-                    <button class="btn bg-purple-600 hover:bg-purple-700 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        İndir
-                    </button>
-                    
-                    <button class="btn bg-blue-500 hover:bg-blue-600 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                        </svg>
-                        Paylaş
-                    </button>
+                    {% empty %}
+                        <p class="text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Related Designs Section -->
-    <div class="mt-12">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Benzer Tasarımlar</h2>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {% if related_designs %}
-                {% for related in related_designs %}
-                    <div class="glass-card diamond-shine">
-                        <div class="h-48 overflow-hidden rounded-t-lg">
-                            <img src="{{ related.image.url }}" alt="{{ related.title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
-                        </div>
-                        <div class="p-4">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ related.title }}</h3>
-                            <div class="flex items-center mb-3">
-                                <a href="{% url 'core:profile' related.user.username %}" class="text-sm text-purple-600 hover:text-purple-800">{{ related.user.username }}</a>
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Artist Info -->
+            <div class="glass p-6 rounded-xl">
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="flex-shrink-0">
+                        {% if design.user.profile.avatar %}
+                            <img src="{{ design.user.profile.avatar.url }}" alt="{{ design.user.username }}" 
+                                 class="w-16 h-16 rounded-full">
+                        {% else %}
+                            <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                                {{ design.user.username|make_list|first|upper }}
                             </div>
-                            
-                            <a href="{% url 'core:design_detail' related.id %}" class="text-purple-600 hover:text-purple-800 text-sm flex items-center">
-                                Detayları Gör
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-lg">
+                            <a href="{% url 'core:profile' design.user.username %}" 
+                               class="text-purple-600 hover:text-purple-800">
+                                {{ design.user.get_full_name|default:design.user.username }}
                             </a>
+                        </h3>
+                        <p class="text-gray-600">@{{ design.user.username }}</p>
+                        <div class="flex space-x-4 text-sm text-gray-500 mt-1">
+                            <span>{{ design.user.profile.followers_count }} followers</span>
+                            <span>{{ design.user.profile.designs_count }} designs</span>
                         </div>
                     </div>
-                {% endfor %}
-            {% else %}
-                <div class="col-span-full">
-                    <div class="glass p-8 rounded-lg text-center">
-                        <p class="text-gray-600">Henüz benzer tasarım bulunmuyor.</p>
+                </div>
+                
+                {% if design.user.profile.bio %}
+                    <p class="text-gray-700 mb-4">{{ design.user.profile.bio|truncatewords:20 }}</p>
+                {% endif %}
+                
+                {% if user.is_authenticated and user != design.user %}
+                    <button id="follow-btn" data-username="{{ design.user.username }}"
+                            class="w-full btn py-2 {% if is_following %}bg-gray-500 hover:bg-gray-600{% else %}bg-purple-600 hover:bg-purple-700{% endif %} text-white rounded-lg transition">
+                        {% if is_following %}Following{% else %}Follow{% endif %}
+                    </button>
+                {% endif %}
+            </div>
+            
+            <!-- Related Designs -->
+            {% if related_designs %}
+                <div class="glass p-6 rounded-xl">
+                    <h3 class="font-bold text-lg mb-4">More from {{ design.user.username }}</h3>
+                    <div class="space-y-3">
+                        {% for related in related_designs %}
+                            <a href="{% url 'core:design_detail' related.id %}" 
+                               class="block group">
+                                <div class="flex space-x-3">
+                                    <img src="{{ related.image.url }}" alt="{{ related.title }}" 
+                                         class="w-16 h-16 rounded-lg object-cover group-hover:scale-105 transition">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900 group-hover:text-purple-600 transition">
+                                            {{ related.title|truncatechars:30 }}
+                                        </h4>
+                                        <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                            <span>{{ related.likes_count }} likes</span>
+                                            <span>•</span>
+                                            <span>{{ related.views_count }} views</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
                     </div>
                 </div>
             {% endif %}
@@ -227,54 +241,162 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-{% if user == design.user %}
-<div id="delete-modal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
-    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
-        <div class="glass-card p-6 rounded-xl">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Tasarımı Sil</h3>
-            <p class="text-gray-700 mb-6">Bu tasarımı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</p>
-            
-            <div class="flex justify-end space-x-4">
-                <button id="cancel-delete" class="btn bg-gray-200 text-gray-800 hover:bg-gray-300">
-                    İptal
-                </button>
-                <form action="{% url 'core:design_delete' design.id %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn bg-red-500 hover:bg-red-600">
-                        Sil
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const deleteBtn = document.getElementById('delete-btn');
-        const deleteModal = document.getElementById('delete-modal');
-        const cancelDelete = document.getElementById('cancel-delete');
-        
-        deleteBtn.addEventListener('click', function() {
-            deleteModal.classList.remove('hidden');
-        });
-        
-        cancelDelete.addEventListener('click', function() {
-            deleteModal.classList.add('hidden');
-        });
-    });
-    
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(function() {
-            // Kopyalama başarılı
-            alert('Token ID kopyalandı');
-        }, function(err) {
-            // Kopyalama başarısız
-            console.error('Token ID kopyalanamadı:', err);
+document.addEventListener('DOMContentLoaded', function() {
+    // Like functionality
+    const likeBtn = document.getElementById('like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', async function() {
+            const designId = this.dataset.designId;
+            
+            try {
+                const response = await fetch(`/api/like/${designId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update like button
+                    if (data.liked) {
+                        this.classList.add('bg-red-500', 'text-white');
+                        this.classList.remove('bg-gray-200', 'text-gray-600');
+                    } else {
+                        this.classList.remove('bg-red-500', 'text-white');
+                        this.classList.add('bg-gray-200', 'text-gray-600');
+                    }
+                    
+                    // Update likes count
+                    document.getElementById('likes-count').textContent = data.likes_count;
+                }
+            } catch (error) {
+                console.error('Like failed:', error);
+            }
         });
     }
+    
+    // Follow functionality
+    const followBtn = document.getElementById('follow-btn');
+    if (followBtn) {
+        followBtn.addEventListener('click', async function() {
+            const username = this.dataset.username;
+            
+            try {
+                const response = await fetch(`/api/follow/${username}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.following) {
+                        this.textContent = 'Following';
+                        this.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                        this.classList.add('bg-gray-500', 'hover:bg-gray-600');
+                    } else {
+                        this.textContent = 'Follow';
+                        this.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                        this.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                    }
+                }
+            } catch (error) {
+                console.error('Follow failed:', error);
+            }
+        });
+    }
+    
+    // Comment functionality
+    const submitCommentBtn = document.getElementById('submit-comment');
+    if (submitCommentBtn) {
+        submitCommentBtn.addEventListener('click', async function() {
+            const designId = this.dataset.designId;
+            const commentInput = document.getElementById('comment-input');
+            const content = commentInput.value.trim();
+            
+            if (!content) return;
+            
+            try {
+                const response = await fetch(`/api/comment/${designId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Clear input
+                    commentInput.value = '';
+                    
+                    // Update comments count
+                    document.getElementById('comments-count').textContent = data.comments_count;
+                    
+                    // Add new comment to list
+                    const commentsList = document.getElementById('comments-list');
+                    const newCommentHtml = `
+                        <div class="comment flex space-x-3" data-comment-id="${data.comment.id}">
+                            <div class="flex-shrink-0">
+                                ${data.comment.user.avatar ? 
+                                    `<img src="${data.comment.user.avatar}" alt="${data.comment.user.username}" class="w-8 h-8 rounded-full">` :
+                                    `<div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">${data.comment.user.username.charAt(0).toUpperCase()}</div>`
+                                }
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-gray-50 rounded-lg p-3">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <a href="/profile/${data.comment.user.username}/" class="font-medium text-purple-600 hover:text-purple-800">
+                                            ${data.comment.user.full_name}
+                                        </a>
+                                        <span class="text-gray-500 text-sm">just now</span>
+                                    </div>
+                                    <p class="text-gray-700">${data.comment.content}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Check if there are existing comments
+                    const noCommentsMsg = commentsList.querySelector('p');
+                    if (noCommentsMsg && noCommentsMsg.textContent.includes('No comments yet')) {
+                        commentsList.innerHTML = newCommentHtml;
+                    } else {
+                        commentsList.insertAdjacentHTML('afterbegin', newCommentHtml);
+                    }
+                }
+            } catch (error) {
+                console.error('Comment failed:', error);
+            }
+        });
+    }
+});
+
+// Share functionality
+function shareDesign() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ design.title }}',
+            text: 'Check out this amazing design on triX!',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Link copied to clipboard!');
+        });
+    }
+}
 </script>
-{% endif %}
+
+{% csrf_token %}
 {% endblock %} 

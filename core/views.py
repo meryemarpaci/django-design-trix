@@ -6,12 +6,16 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import UserProfile, Design
-from django.db.models import Q
+from .models import UserProfile, Design, Like, Comment, Follow, DesignView, ContactMessage
+from django.db.models import Q, Count
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.db.models import F
 import os
 import json
 import uuid
@@ -40,12 +44,38 @@ settings.DEBUG = True
 # Create your views here.
 
 def home(request):
-    # Son eklenen 6 tasarımı göster
+    # Trending tasarımları göster (en çok beğenilen son 7 günün tasarımları)
+    from datetime import datetime, timedelta
+    week_ago = datetime.now() - timedelta(days=7)
+    
+    trending_designs = Design.objects.filter(
+        status='published',
+        created_at__gte=week_ago
+    ).annotate(
+        engagement_score=F('likes_count') + F('views_count') + F('comments_count')
+    ).order_by('-engagement_score', '-created_at')[:6]
+    
+    # Eğer trend bulunamazsa son tasarımları göster
+    if not trending_designs:
+        trending_designs = Design.objects.filter(status='published').order_by('-created_at')[:6]
+    
+    # Son eklenen tasarımlar
     latest_designs = Design.objects.filter(status='published').order_by('-created_at')[:6]
+    
+    # Toplam istatistikler
+    total_designs = Design.objects.filter(status='published').count()
+    total_users = User.objects.count()
+    total_likes = Like.objects.count()
     
     context = {
         'title': 'triX - Creativity Platform',
+        'trending_designs': trending_designs,
         'latest_designs': latest_designs,
+        'stats': {
+            'total_designs': total_designs,
+            'total_users': total_users,
+            'total_likes': total_likes,
+        }
     }
     return render(request, 'home.html', context)
 
@@ -62,6 +92,7 @@ def gallery(request):
     # Filtreler
     style = request.GET.get('style', '')
     search = request.GET.get('search', '')
+    sort_by = request.GET.get('sort', 'latest')  # latest, popular, trending
     
     designs = Design.objects.filter(status='published')
     
@@ -72,18 +103,128 @@ def gallery(request):
         designs = designs.filter(
             Q(title__icontains=search) | 
             Q(description__icontains=search) |
-            Q(prompt__icontains=search)
+            Q(prompt__icontains=search) |
+            Q(tags__icontains=search)
         )
+    
+    # Sıralama
+    if sort_by == 'popular':
+        designs = designs.order_by('-likes_count', '-views_count')
+    elif sort_by == 'trending':
+        from datetime import datetime, timedelta
+        week_ago = datetime.now() - timedelta(days=7)
+        designs = designs.filter(created_at__gte=week_ago).annotate(
+            engagement_score=F('likes_count') + F('views_count') + F('comments_count')
+        ).order_by('-engagement_score')
+    else:  # latest
+        designs = designs.order_by('-created_at')
+    
+    # Sayfalama eklenebilir burada
     
     context = {
         'title': 'triX Gallery',
         'designs': designs,
         'style_filter': style,
         'search_query': search,
+        'sort_by': sort_by,
+        'available_styles': Design.objects.filter(status='published').values_list('style', flat=True).distinct()
     }
     return render(request, 'gallery.html', context)
 
 def contact(request):
+    if request.method == 'POST':
+        # Form verilerini al
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message_content = request.POST.get('message', '').strip()
+        
+        # Validasyon
+        if not all([name, email, subject, message_content]):
+            messages.error(request, 'Lütfen tüm alanları doldurun.')
+            return render(request, 'contact.html', {
+                'title': 'Contact triX',
+                'form_data': {
+                    'name': name,
+                    'email': email,
+                    'subject': subject,
+                    'message': message_content
+                }
+            })
+        
+        try:
+            # Veritabanına kaydet
+            contact_message = ContactMessage.objects.create(
+                name=name,
+                email=email,
+                subject=subject,
+                message=message_content
+            )
+            
+            # Email gönder (admin'e)
+            try:
+                admin_email = settings.DEFAULT_FROM_EMAIL or 'admin@trixweb.com'
+                
+                email_subject = f'triX Contact Form: {subject}'
+                email_message = f"""
+Yeni iletişim formu mesajı:
+
+İsim: {name}
+Email: {email}
+Konu: {subject}
+
+Mesaj:
+{message_content}
+
+---
+Bu mesaj triX iletişim formundan gönderilmiştir.
+Mesaj ID: {contact_message.id}
+Tarih: {contact_message.created_at.strftime('%d/%m/%Y %H:%M')}
+                """
+                
+                send_mail(
+                    email_subject,
+                    email_message,
+                    email,  # From email
+                    [admin_email],  # To email
+                    fail_silently=False,
+                )
+                
+                # Kullanıcıya teşekkür emaili gönder
+                thank_you_subject = 'triX - Mesajınız alındı'
+                thank_you_message = f"""
+Merhaba {name},
+
+triX iletişim formundan gönderdiğiniz mesajınız başarıyla alınmıştır.
+
+Konu: {subject}
+
+En kısa sürede size geri dönüş yapacağız.
+
+Teşekkürler,
+triX Ekibi
+                """
+                
+                send_mail(
+                    thank_you_subject,
+                    thank_you_message,
+                    admin_email,
+                    [email],
+                    fail_silently=True,  # Kullanıcı emaili başarısız olursa ana işlemi etkilemesin
+                )
+                
+                messages.success(request, 'Mesajınız başarıyla gönderildi! En kısa sürede size geri dönüş yapacağız.')
+                
+            except Exception as e:
+                logger.error(f"Contact form email failed: {e}")
+                messages.success(request, 'Mesajınız kaydedildi! En kısa sürede size geri dönüş yapacağız.')
+            
+            return redirect('core:contact')
+            
+        except Exception as e:
+            logger.error(f"Contact form save failed: {e}")
+            messages.error(request, 'Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.')
+    
     context = {
         'title': 'Contact triX'
     }
@@ -186,13 +327,54 @@ def profile_edit(request):
     
     return render(request, 'auth/profile_edit.html', {'user': request.user})
 
-@login_required(login_url='/login/')
 def design_detail(request, design_id):
     design = get_object_or_404(Design, id=design_id)
     
     # Eğer tasarım yayınlanmadıysa ve mevcut kullanıcı sahibi değilse erişimi engelle
     if design.status != 'published' and request.user != design.user:
         return HttpResponseForbidden("Bu tasarımı görüntüleme izniniz yok.")
+    
+    # View tracking (her ziyaret için sayaç artır)
+    def get_client_ip(request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+    
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    ip_address = get_client_ip(request)
+    
+    # Eğer bu IP'den bu tasarımı daha önce görmediyse view kaydet
+    design_view, created = DesignView.objects.get_or_create(
+        user=request.user if request.user.is_authenticated else None,
+        design=design,
+        ip_address=ip_address,
+        defaults={'user_agent': user_agent}
+    )
+    
+    if created:
+        # View count'u artır
+        design.views_count = F('views_count') + 1
+        design.save(update_fields=['views_count'])
+        design.refresh_from_db()
+    
+    # Kullanıcının bu tasarımı beğenip beğenmediğini kontrol et
+    is_liked = False
+    is_following = False
+    if request.user.is_authenticated:
+        is_liked = design.is_liked_by(request.user)
+        is_following = Follow.objects.filter(
+            follower=request.user, 
+            following=design.user
+        ).exists()
+    
+    # Yorumları al
+    comments = Comment.objects.filter(
+        design=design, 
+        parent=None
+    ).select_related('user', 'user__profile').order_by('-created_at')
     
     # Benzer tasarımları bul
     related_designs = Design.objects.filter(
@@ -203,6 +385,9 @@ def design_detail(request, design_id):
     context = {
         'design': design,
         'related_designs': related_designs,
+        'comments': comments,
+        'is_liked': is_liked,
+        'is_following': is_following,
     }
     return render(request, 'design_detail.html', context)
 
@@ -621,4 +806,315 @@ def test_ai_model(request):
             'success': False,
             'error': f'Test failed: {str(e)}',
             'suggestion': 'Check network connection and API availability'
+        })
+
+# Social Features
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_http_methods(["POST"])
+def toggle_like(request, design_id):
+    """Toggle like for a design"""
+    design = get_object_or_404(Design, id=design_id)
+    
+    try:
+        like, created = Like.objects.get_or_create(
+            user=request.user,
+            design=design
+        )
+        
+        if created:
+            # Like eklendi
+            action = 'liked'
+            liked = True
+        else:
+            # Like kaldırıldı
+            like.delete()
+            action = 'unliked'
+            liked = False
+        
+        # Güncel like sayısını al
+        design.refresh_from_db()
+        
+        return JsonResponse({
+            'success': True,
+            'action': action,
+            'liked': liked,
+            'likes_count': design.likes_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Toggle like failed: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Like işlemi başarısız oldu'
+        })
+
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_http_methods(["POST"])
+def toggle_follow(request, username):
+    """Toggle follow for a user"""
+    target_user = get_object_or_404(User, username=username)
+    
+    if request.user == target_user:
+        return JsonResponse({
+            'success': False,
+            'error': 'Kendinizi takip edemezsiniz'
+        })
+    
+    try:
+        follow, created = Follow.objects.get_or_create(
+            follower=request.user,
+            following=target_user
+        )
+        
+        if created:
+            # Follow eklendi
+            action = 'followed'
+            following = True
+        else:
+            # Follow kaldırıldı
+            follow.delete()
+            action = 'unfollowed'
+            following = False
+        
+        # Güncel follower sayısını al
+        target_user.profile.refresh_from_db()
+        
+        return JsonResponse({
+            'success': True,
+            'action': action,
+            'following': following,
+            'followers_count': target_user.profile.followers_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Toggle follow failed: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Takip işlemi başarısız oldu'
+        })
+
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_http_methods(["POST"])
+def add_comment(request, design_id):
+    """Add comment to a design"""
+    design = get_object_or_404(Design, id=design_id)
+    
+    try:
+        data = json.loads(request.body)
+        content = data.get('content', '').strip()
+        parent_id = data.get('parent_id')
+        
+        if not content:
+            return JsonResponse({
+                'success': False,
+                'error': 'Yorum içeriği boş olamaz'
+            })
+        
+        # Parent comment kontrolü
+        parent = None
+        if parent_id:
+            parent = get_object_or_404(Comment, id=parent_id, design=design)
+        
+        # Yorum oluştur
+        comment = Comment.objects.create(
+            user=request.user,
+            design=design,
+            content=content,
+            parent=parent
+        )
+        
+        # Response data
+        response_data = {
+            'success': True,
+            'comment': {
+                'id': comment.id,
+                'content': comment.content,
+                'user': {
+                    'username': comment.user.username,
+                    'full_name': comment.user.get_full_name() or comment.user.username,
+                    'avatar': comment.user.profile.avatar.url if comment.user.profile.avatar else None
+                },
+                'created_at': comment.created_at.strftime('%d %b %Y, %H:%M'),
+                'parent_id': parent.id if parent else None
+            },
+            'comments_count': design.comments_count
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        logger.error(f"Add comment failed: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Yorum eklenirken hata oluştu'
+        })
+
+def search(request):
+    """Search designs, users, and tags"""
+    query = request.GET.get('q', '').strip()
+    category = request.GET.get('category', 'all')  # all, designs, users, tags
+    
+    context = {
+        'title': 'Search Results',
+        'query': query,
+        'category': category
+    }
+    
+    if not query:
+        return render(request, 'search.html', context)
+    
+    # Tasarım araması
+    if category in ['all', 'designs']:
+        designs = Design.objects.filter(
+            status='published'
+        ).filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(prompt__icontains=query) |
+            Q(tags__icontains=query) |
+            Q(user__username__icontains=query)
+        ).distinct().order_by('-likes_count', '-created_at')
+        
+        context['designs'] = designs
+    
+    # Kullanıcı araması
+    if category in ['all', 'users']:
+        users = User.objects.filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(profile__bio__icontains=query)
+        ).select_related('profile').order_by('-profile__followers_count')
+        
+        context['users'] = users
+    
+    # Tag araması
+    if category in ['all', 'tags']:
+        # Tag'leri içeren tasarımları bul
+        tag_designs = Design.objects.filter(
+            status='published',
+            tags__icontains=query
+        ).order_by('-likes_count')
+        
+        # Benzersiz tag'leri bul
+        all_tags = []
+        for design in Design.objects.filter(status='published').exclude(tags=''):
+            tags = design.get_tags_list()
+            for tag in tags:
+                if query.lower() in tag.lower() and tag not in all_tags:
+                    all_tags.append(tag)
+        
+        context['tag_designs'] = tag_designs
+        context['tags'] = all_tags[:10]  # İlk 10 tag
+    
+    return render(request, 'search.html', context)
+
+def trending(request):
+    """Trending designs page"""
+    from datetime import datetime, timedelta
+    
+    # Son 7 günün trend tasarımları
+    week_ago = datetime.now() - timedelta(days=7)
+    
+    trending_designs = Design.objects.filter(
+        status='published',
+        created_at__gte=week_ago
+    ).annotate(
+        engagement_score=F('likes_count') + F('views_count') + F('comments_count')
+    ).order_by('-engagement_score', '-created_at')
+    
+    # Son 30 günün popüler tasarımları
+    month_ago = datetime.now() - timedelta(days=30)
+    popular_designs = Design.objects.filter(
+        status='published',
+        created_at__gte=month_ago
+    ).order_by('-likes_count', '-views_count')[:12]
+    
+    # En aktif kullanıcılar
+    top_creators = User.objects.filter(
+        designs__status='published',
+        designs__created_at__gte=week_ago
+    ).annotate(
+        recent_designs=Count('designs')
+    ).order_by('-recent_designs', '-profile__followers_count')[:8]
+    
+    context = {
+        'title': 'Trending - triX',
+        'trending_designs': trending_designs,
+        'popular_designs': popular_designs,
+        'top_creators': top_creators,
+    }
+    
+    return render(request, 'trending.html', context)
+
+def designs_by_tag(request, tag):
+    """Show designs filtered by tag"""
+    designs = Design.objects.filter(
+        status='published',
+        tags__icontains=tag
+    ).order_by('-created_at')
+    
+    # İlgili tag'ler
+    related_tags = []
+    for design in designs[:20]:  # İlk 20 tasarımdan tag topla
+        tags = design.get_tags_list()
+        for t in tags:
+            if t != tag and t not in related_tags:
+                related_tags.append(t)
+    
+    context = {
+        'title': f'#{tag} - triX',
+        'tag': tag,
+        'designs': designs,
+        'related_tags': related_tags[:10],  # İlk 10 ilgili tag
+        'designs_count': designs.count()
+    }
+    
+    return render(request, 'designs_by_tag.html', context)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def track_design_view(request, design_id):
+    """Track design view (AJAX endpoint)"""
+    design = get_object_or_404(Design, id=design_id)
+    
+    def get_client_ip(request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+    
+    try:
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        ip_address = get_client_ip(request)
+        
+        # View kaydı oluştur
+        design_view, created = DesignView.objects.get_or_create(
+            user=request.user if request.user.is_authenticated else None,
+            design=design,
+            ip_address=ip_address,
+            defaults={'user_agent': user_agent}
+        )
+        
+        if created:
+            # View count'u artır
+            design.views_count = F('views_count') + 1
+            design.save(update_fields=['views_count'])
+            design.refresh_from_db()
+        
+        return JsonResponse({
+            'success': True,
+            'views_count': design.views_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Track design view failed: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'View tracking failed'
         })

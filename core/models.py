@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.urls import reverse
 import hashlib
 import time
 from datetime import datetime
@@ -12,11 +13,34 @@ class UserProfile(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     website = models.URLField(blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    
+    # Social stats
+    followers_count = models.PositiveIntegerField(default=0)
+    following_count = models.PositiveIntegerField(default=0)
+    designs_count = models.PositiveIntegerField(default=0)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.username}'s profile"
+    
+    def get_absolute_url(self):
+        return reverse('core:profile', kwargs={'username': self.user.username})
+
+class Follow(models.Model):
+    """User following system"""
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('follower', 'following')
+    
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"
 
 class Design(models.Model):
     STATUS_CHOICES = (
@@ -33,6 +57,15 @@ class Design(models.Model):
     style = models.CharField(max_length=50, blank=True)
     model_used = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    
+    # Social features
+    likes_count = models.PositiveIntegerField(default=0)
+    views_count = models.PositiveIntegerField(default=0)
+    comments_count = models.PositiveIntegerField(default=0)
+    
+    # SEO and sharing
+    tags = models.CharField(max_length=200, blank=True, help_text="Comma-separated tags")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -45,6 +78,19 @@ class Design(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def get_absolute_url(self):
+        return reverse('core:design_detail', kwargs={'design_id': self.id})
+    
+    def get_tags_list(self):
+        if self.tags:
+            return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+        return []
+    
+    def is_liked_by(self, user):
+        if user.is_authenticated:
+            return Like.objects.filter(user=user, design=self).exists()
+        return False
     
     def generate_token_id(self):
         """
@@ -81,6 +127,59 @@ class Design(models.Model):
             self.token_id = self.generate_token_id()
             self.token_created_at = datetime.now()
 
+class Like(models.Model):
+    """Design likes system"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    design = models.ForeignKey(Design, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'design')
+    
+    def __str__(self):
+        return f"{self.user.username} liked {self.design.title}"
+
+class Comment(models.Model):
+    """Comments on designs"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    design = models.ForeignKey(Design, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField()
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.design.title}"
+
+class DesignView(models.Model):
+    """Track design views for analytics"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    design = models.ForeignKey(Design, on_delete=models.CASCADE, related_name='design_views')
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'design', 'ip_address')
+
+class ContactMessage(models.Model):
+    """Contact form submissions"""
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Message from {self.name} - {self.subject}"
+
 class TokenMetadata(models.Model):
     """
     Token ID ile ilgili ek meta verileri saklamak için model.
@@ -95,6 +194,7 @@ class TokenMetadata(models.Model):
     def __str__(self):
         return f"Token {self.token_id[:8]}... for {self.design.title}"
 
+# Signal handlers
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -102,7 +202,37 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+
+@receiver(post_save, sender=Like)
+def update_design_likes_count(sender, instance, created, **kwargs):
+    if created:
+        instance.design.likes_count = instance.design.likes.count()
+        instance.design.save(update_fields=['likes_count'])
+
+@receiver(post_save, sender=Comment)
+def update_design_comments_count(sender, instance, created, **kwargs):
+    if created:
+        instance.design.comments_count = instance.design.comments.count()
+        instance.design.save(update_fields=['comments_count'])
+
+@receiver(post_save, sender=Follow)
+def update_follow_counts(sender, instance, created, **kwargs):
+    if created:
+        # Update follower count
+        instance.following.profile.followers_count = instance.following.followers.count()
+        instance.following.profile.save(update_fields=['followers_count'])
+        
+        # Update following count
+        instance.follower.profile.following_count = instance.follower.following.count()
+        instance.follower.profile.save(update_fields=['following_count'])
+
+@receiver(post_save, sender=Design)
+def update_user_designs_count(sender, instance, created, **kwargs):
+    if created:
+        instance.user.profile.designs_count = instance.user.designs.filter(status='published').count()
+        instance.user.profile.save(update_fields=['designs_count'])
 
 @receiver(pre_save, sender=Design)
 def ensure_token_id(sender, instance, **kwargs):

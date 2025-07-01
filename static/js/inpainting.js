@@ -408,7 +408,7 @@ class InpaintingApp {
 // Initialize the inpainting app when the page loads
 let inpaintingApp;
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('inpainting-canvas')) {
-        inpaintingApp = new InpaintingApp();
-    }
+    // Make inpainting app available globally for tool switching
+    window.inpaintingApp = new InpaintingApp();
+    inpaintingApp = window.inpaintingApp;
 }); 

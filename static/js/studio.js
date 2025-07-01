@@ -19,7 +19,14 @@ function initToolSwitching() {
     toolItems.forEach(item => {
         item.addEventListener('click', () => {
             const toolId = item.getAttribute('data-tool');
-            const targetContent = document.getElementById(`${toolId}-content`);
+            let targetContent;
+            
+            // Map tool IDs to content IDs
+            if (toolId === 'text-to-image') {
+                targetContent = document.getElementById('text-to-image-content');
+            } else if (toolId === 'inpainting') {
+                targetContent = document.getElementById('inpainting-content');
+            }
             
             if (!targetContent) return;
             
@@ -30,6 +37,16 @@ function initToolSwitching() {
             // Add active class to clicked item and corresponding content
             item.classList.add('active');
             targetContent.classList.add('active');
+            
+            // Reinitialize inpainting app if switching to inpainting tool
+            if (toolId === 'inpainting' && window.inpaintingApp) {
+                // Reinitialize canvas if needed
+                setTimeout(() => {
+                    if (window.inpaintingApp.setupCanvas) {
+                        window.inpaintingApp.setupCanvas();
+                    }
+                }, 100);
+            }
         });
     });
 }

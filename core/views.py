@@ -18,6 +18,9 @@ import uuid
 from PIL import Image
 import logging
 
+# Initialize logger
+logger = logging.getLogger(__name__)
+
 # AI model imports
 try:
     from .ai_models import get_inpainting_model
@@ -29,8 +32,6 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"AI models failed to load: {e}")
     AI_AVAILABLE = False
-
-logger = logging.getLogger(__name__)
 
 # Force debug mode to ensure static files load correctly
 settings.DEBUG = True

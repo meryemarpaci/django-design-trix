@@ -22,8 +22,12 @@ import logging
 try:
     from .ai_models import get_inpainting_model
     AI_AVAILABLE = True
+    logger.info("AI models loaded successfully")
 except ImportError as e:
-    print(f"AI models not available: {e}")
+    logger.warning(f"AI models not available: {e}")
+    AI_AVAILABLE = False
+except Exception as e:
+    logger.error(f"AI models failed to load: {e}")
     AI_AVAILABLE = False
 
 logger = logging.getLogger(__name__)

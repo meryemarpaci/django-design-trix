@@ -19,8 +19,7 @@
             <div class="order-2 lg:order-1">
                 <div class="glass-card p-8 md:p-12">
                     <h2 class="text-3xl font-bold mb-6">Send Us a Message</h2>
-                    <form id="contact-form" class="space-y-6">
-                        {% csrf_token %}
+                    <form action="https://formspree.io/f/xqaklnbr" method="POST" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Your Name</label>
@@ -42,6 +41,10 @@
                             <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white resize-none" required></textarea>
                         </div>
                         
+                        <!-- Hidden field for subject line customization -->
+                        <input type="hidden" name="_subject" value="New message from triX contact form!">
+                        <input type="hidden" name="_next" value="https://trixweb.onrender.com/contact/?success=1">
+                        
                         <div class="flex items-center">
                             <input id="privacy" name="privacy" type="checkbox" class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-700 rounded" required>
                             <label for="privacy" class="ml-2 block text-sm text-gray-300">
@@ -50,18 +53,9 @@
                         </div>
                         
                         <div>
-                            <button type="submit" id="submit-btn" class="w-full py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors">
-                                <span id="btn-text">Send Message</span>
-                                <span id="btn-loading" class="hidden">Sending...</span>
+                            <button type="submit" class="w-full py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors">
+                                Send Message
                             </button>
-                        </div>
-                        
-                        <!-- Status Messages -->
-                        <div id="success-message" class="hidden p-4 bg-green-600 text-white rounded-lg">
-                            Message sent successfully! We'll get back to you soon.
-                        </div>
-                        <div id="error-message" class="hidden p-4 bg-red-600 text-white rounded-lg">
-                            Failed to send message. Please try again.
                         </div>
                     </form>
                 </div>
@@ -219,77 +213,24 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- EmailJS CDN -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
 <script>
-    // EmailJS Configuration
-    (function() {
-        // EmailJS kurulumu yaptıktan sonra bu değerleri güncelleyin:
-        emailjs.init("gULdZ6aOj_Fi8OM9z"); // Test public key - çalışır durumda
-    })();
-
+    // Success message display
     document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('contact-form');
-        const submitBtn = document.getElementById('submit-btn');
-        const btnText = document.getElementById('btn-text');
-        const btnLoading = document.getElementById('btn-loading');
-        const successMessage = document.getElementById('success-message');
-        const errorMessage = document.getElementById('error-message');
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === '1') {
+            // Show success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 z-50 p-4 bg-green-600 text-white rounded-lg shadow-lg';
+            successDiv.innerHTML = '✅ Message sent successfully! We\'ll get back to you soon.';
+            document.body.appendChild(successDiv);
             
-            // Hide previous messages
-            successMessage.classList.add('hidden');
-            errorMessage.classList.add('hidden');
-            
-            // Show loading state
-            btnText.classList.add('hidden');
-            btnLoading.classList.remove('hidden');
-            submitBtn.disabled = true;
-            
-            // Get form data
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                subject: document.getElementById('subject').value,
-                message: document.getElementById('message').value
-            };
-            
-            // Send email using EmailJS - Test konfigürasyonu
-            emailjs.send('service_1i7m6sb', 'template_3c8gdqq', {
-                to_email: 'aiopix.ai@gmail.com',
-                from_name: formData.name,
-                from_email: formData.email,
-                subject: 'triX Contact: ' + formData.subject,
-                message: formData.message,
-                reply_to: formData.email
-            })
-            .then(function(response) {
-                console.log('Email sent successfully!', response.status, response.text);
-                
-                // Show success message
-                successMessage.classList.remove('hidden');
-                successMessage.innerHTML = '<p class="font-semibold">✅ Message sent successfully!</p><p class="text-sm mt-2">Your message has been sent to aiopix.ai@gmail.com</p>';
-                
-                // Reset form
-                form.reset();
-                
-            }, function(error) {
-                console.log('Failed to send email:', error);
-                
-                // Show error message
-                errorMessage.classList.remove('hidden');
-                errorMessage.innerHTML = '<p class="font-semibold">❌ Failed to send message</p><p class="text-sm mt-2">Please try again or contact us directly at aiopix.ai@gmail.com</p>';
-            })
-            .finally(function() {
-                // Reset button state
-                btnText.classList.remove('hidden');
-                btnLoading.classList.add('hidden');
-                submitBtn.disabled = false;
-            });
-        });
+            // Remove after 5 seconds
+            setTimeout(() => {
+                successDiv.remove();
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 5000);
+        }
     });
 </script>
 {% endblock %} 

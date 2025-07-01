@@ -126,11 +126,16 @@ def gallery(request):
     return render(request, 'gallery.html', context)
 
 def contact(request):
-    # EmailJS frontend'de email gönderme işlemini hallediyor
-    # Bu view sadece sayfayı render ediyor
+    # Formspree handles email sending directly from frontend
+    # This view handles success message display
     context = {
         'title': 'Contact triX - Send us a message'
     }
+    
+    # Check if form was successfully submitted via Formspree
+    if request.GET.get('success') == '1':
+        context['success_message'] = 'Message sent successfully! We\'ll get back to you soon.'
+    
     return render(request, 'contact.html', context)
 
 def register_view(request):

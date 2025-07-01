@@ -217,12 +217,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'aiopix.ai@gmail.com')
+# TODO: Gmail App Password'unu buraya ekleyin (16 karakterlik kod)
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'YOUR_GMAIL_APP_PASSWORD_HERE')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'aiopix.ai@gmail.com')
 
-# For development, you can use console backend
-if DEBUG and not EMAIL_HOST_USER:
+# For development - force SMTP if we have credentials
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD and EMAIL_HOST_PASSWORD != 'YOUR_GMAIL_APP_PASSWORD_HERE':
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+elif DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Security settings for production

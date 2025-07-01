@@ -157,7 +157,7 @@ def contact(request):
             
             # Email gönder (admin'e)
             try:
-                admin_email = settings.DEFAULT_FROM_EMAIL or 'admin@trixweb.com'
+                admin_email = 'aiopix.ai@gmail.com'  # Kullanıcının belirttiği email adresi
                 
                 email_subject = f'triX Contact Form: {subject}'
                 email_message = f"""
@@ -202,7 +202,7 @@ triX Ekibi
                 send_mail(
                     thank_you_subject,
                     thank_you_message,
-                    admin_email,
+                    'aiopix.ai@gmail.com',  # From admin email
                     [email],
                     fail_silently=True,  # Kullanıcı emaili başarısız olursa ana işlemi etkilemesin
                 )

@@ -44,33 +44,13 @@ settings.DEBUG = True
 # Create your views here.
 
 def home(request):
-    # Trending tasarımları göster (en çok beğenilen son 7 günün tasarımları)
-    from datetime import datetime, timedelta
-    week_ago = datetime.now() - timedelta(days=7)
-    
-    trending_designs = Design.objects.filter(
-        status='published',
-        created_at__gte=week_ago
-    ).annotate(
-        engagement_score=F('likes_count') + F('views_count') + F('comments_count')
-    ).order_by('-engagement_score', '-created_at')[:6]
-    
-    # Eğer trend bulunamazsa son tasarımları göster
-    if not trending_designs:
-        trending_designs = Design.objects.filter(status='published').order_by('-created_at')[:6]
-    
-    # Son eklenen tasarımlar
-    latest_designs = Design.objects.filter(status='published').order_by('-created_at')[:6]
-    
-    # Toplam istatistikler
+    # Sadece platform istatistikleri - tasarımları galeri'de gösterelim
     total_designs = Design.objects.filter(status='published').count()
     total_users = User.objects.count()
     total_likes = Like.objects.count()
     
     context = {
         'title': 'triX - Creativity Platform',
-        'trending_designs': trending_designs,
-        'latest_designs': latest_designs,
         'stats': {
             'total_designs': total_designs,
             'total_users': total_users,
@@ -119,11 +99,25 @@ def gallery(request):
     else:  # latest
         designs = designs.order_by('-created_at')
     
-    # Sayfalama eklenebilir burada
+    # Ana sayfa için özel categoriler
+    trending_designs = Design.objects.filter(status='published')
+    latest_designs = Design.objects.filter(status='published').order_by('-created_at')[:12]
+    
+    if trending_designs.exists():
+        from datetime import datetime, timedelta
+        week_ago = datetime.now() - timedelta(days=7)
+        trending_designs = trending_designs.filter(created_at__gte=week_ago).annotate(
+            engagement_score=F('likes_count') + F('views_count') + F('comments_count')
+        ).order_by('-engagement_score')[:12]
+        
+        if not trending_designs:
+            trending_designs = latest_designs[:12]
     
     context = {
         'title': 'triX Gallery',
         'designs': designs,
+        'trending_designs': trending_designs,
+        'latest_designs': latest_designs,
         'style_filter': style,
         'search_query': search,
         'sort_by': sort_by,

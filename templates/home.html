@@ -283,173 +283,34 @@
     </div>
 </section>
 
-<!-- Trending Designs Section -->
-{% if trending_designs %}
-<section class="section bg-gradient-to-b from-white to-indigo-50">
-    <div class="container mx-auto px-4 md:px-6">
-        <div class="text-center mb-16 fade-in">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4 gradient-text glow-text">Trending Designs</h2>
-            <div class="gradient-divider mx-auto" style="max-width: 200px;"></div>
-            <p class="text-xl text-gray-600 mt-4">Discover what's popular in the triX community</p>
-        </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            {% for design in trending_designs %}
-                <div class="cosmic-card card-3d group">
-                    <div class="cosmic-card-status status-trending">🔥 Trending</div>
-                    
-                    <a href="{% url 'core:design_detail' design.id %}">
-                        <img src="{{ design.image.url }}" alt="{{ design.title }}" class="cosmic-card-image">
+<!-- Call to Action Section -->
+<section class="section bg-gradient-to-r from-purple-600 to-indigo-700">
+    <div class="container mx-auto px-4 md:px-6 text-center">
+        <div class="py-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">
+                Tasarımlarınızı Keşfetme Zamanı!
+            </h2>
+            <p class="text-xl text-purple-200 mb-8 max-w-2xl mx-auto">
+                Yaratıcı topluluğumuzun en iyi çalışmalarını galeri bölümünde keşfedin ve kendi eserlerinizi paylaşın.
+            </p>
+            
+            <div class="flex flex-wrap gap-4 justify-center">
+                <a href="{% url 'core:gallery' %}" class="btn py-4 px-8 bg-white text-purple-600 rounded-full font-medium hover:bg-gray-100 transition text-lg">
+                    Galeride Keşfet
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'core:studio' %}" class="btn py-4 px-8 glass border border-white text-white rounded-full font-medium hover:bg-white hover:text-purple-600 transition text-lg">
+                        Tasarım Oluştur
                     </a>
-                    
-                    <div class="cosmic-card-content">
-                        <div>
-                            <h3 class="cosmic-card-title">
-                                <a href="{% url 'core:design_detail' design.id %}" class="text-gray-900 hover:text-purple-600 transition">
-                                    {{ design.title }}
-                                </a>
-                            </h3>
-                            <div class="cosmic-card-creator">
-                                <div class="cosmic-card-avatar">
-                                    {% if design.user.profile.avatar %}
-                                        <img src="{{ design.user.profile.avatar.url }}" alt="{{ design.user.username }}">
-                                    {% else %}
-                                        <div class="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800 text-xs font-bold">
-                                            {{ design.user.username|make_list|first|upper }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <a href="{% url 'core:profile' design.user.username %}" class="hover:text-purple-600 transition">
-                                    {{ design.user.get_full_name|default:design.user.username }}
-                                </a>
-                            </div>
-                            
-                            <div class="cosmic-card-meta">
-                                <span class="cosmic-card-chip">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-                                    </svg>
-                                    {{ design.likes_count }}
-                                </span>
-                                <span class="cosmic-card-chip">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                    </svg>
-                                    {{ design.views_count }}
-                                </span>
-                                {% if design.style %}
-                                    <span class="cosmic-card-chip">{{ design.style }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <a href="{% url 'core:design_detail' design.id %}" class="cosmic-card-link">
-                            View Design
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        
-        <div class="text-center">
-            <a href="{% url 'core:trending' %}" class="btn py-3 px-8 glass diamond-shine rounded-full font-medium inline-flex items-center">
-                View All Trending
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </a>
+                {% else %}
+                    <a href="{% url 'core:register' %}" class="btn py-4 px-8 glass border border-white text-white rounded-full font-medium hover:bg-white hover:text-purple-600 transition text-lg">
+                        Katıl ve Oluştur
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </section>
-{% endif %}
-
-<!-- Latest Designs Section -->
-{% if latest_designs %}
-<section class="section">
-    <div class="container mx-auto px-4 md:px-6">
-        <div class="text-center mb-16 fade-in">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4 gradient-text glow-text">Latest Creations</h2>
-            <div class="gradient-divider mx-auto" style="max-width: 200px;"></div>
-            <p class="text-xl text-gray-600 mt-4">Fresh designs from our talented community</p>
-        </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            {% for design in latest_designs %}
-                <div class="cosmic-card card-3d group">
-                    <div class="cosmic-card-status status-new">✨ New</div>
-                    
-                    <a href="{% url 'core:design_detail' design.id %}">
-                        <img src="{{ design.image.url }}" alt="{{ design.title }}" class="cosmic-card-image">
-                    </a>
-                    
-                    <div class="cosmic-card-content">
-                        <div>
-                            <h3 class="cosmic-card-title">
-                                <a href="{% url 'core:design_detail' design.id %}" class="text-gray-900 hover:text-purple-600 transition">
-                                    {{ design.title }}
-                                </a>
-                            </h3>
-                            <div class="cosmic-card-creator">
-                                <div class="cosmic-card-avatar">
-                                    {% if design.user.profile.avatar %}
-                                        <img src="{{ design.user.profile.avatar.url }}" alt="{{ design.user.username }}">
-                                    {% else %}
-                                        <div class="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800 text-xs font-bold">
-                                            {{ design.user.username|make_list|first|upper }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <a href="{% url 'core:profile' design.user.username %}" class="hover:text-purple-600 transition">
-                                    {{ design.user.get_full_name|default:design.user.username }}
-                                </a>
-                            </div>
-                            
-                            <div class="cosmic-card-meta">
-                                <span class="cosmic-card-chip">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-                                    </svg>
-                                    {{ design.likes_count }}
-                                </span>
-                                <span class="cosmic-card-chip">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                    </svg>
-                                    {{ design.views_count }}
-                                </span>
-                                {% if design.style %}
-                                    <span class="cosmic-card-chip">{{ design.style }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <a href="{% url 'core:design_detail' design.id %}" class="cosmic-card-link">
-                            View Design
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        
-        <div class="text-center">
-            <a href="{% url 'core:gallery' %}" class="btn py-3 px-8 glass diamond-shine rounded-full font-medium inline-flex items-center">
-                View All Designs
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
 
 <!-- Testimonials -->
 <section class="section">

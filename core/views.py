@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 try:
     from .ai_models import get_inpainting_model
     AI_AVAILABLE = True
-    logger.info("AI models loaded successfully")
+    logger.info("AI models configured successfully for API usage")
 except ImportError as e:
     logger.warning(f"AI models not available: {e}")
     AI_AVAILABLE = False
 except Exception as e:
-    logger.error(f"AI models failed to load: {e}")
+    logger.error(f"AI models failed to configure: {e}")
     AI_AVAILABLE = False
 
 # Force debug mode to ensure static files load correctly
@@ -292,12 +292,12 @@ def studio(request):
 @require_http_methods(["POST"])
 def inpaint_image(request):
     """
-    Endpoint for inpainting functionality using LoRA model
+    Endpoint for inpainting functionality using Hugging Face API
     """
     if not AI_AVAILABLE:
         return JsonResponse({
             'success': False, 
-            'error': 'AI functionality not available. Please install required dependencies.'
+            'error': 'AI functionality not available. Please check configuration.'
         })
     
     try:
@@ -329,12 +329,12 @@ def inpaint_image(request):
                 'error': 'Image file not found'
             })
         
-        logger.info(f"Starting inpainting for user {request.user.username}")
+        logger.info(f"Starting API inpainting for user {request.user.username}")
         
-        # Get inpainting model
+        # Get inpainting model (API client)
         model = get_inpainting_model()
         
-        # Perform inpainting
+        # Perform inpainting via API
         result_image = model.inpaint(
             image_path=image_path,
             mask_data=mask_data,
@@ -358,12 +358,12 @@ def inpaint_image(request):
         # Get relative URL for the result
         result_url = f"{settings.MEDIA_URL}inpainted/{result_filename}"
         
-        logger.info(f"Inpainting completed successfully for user {request.user.username}")
+        logger.info(f"API inpainting completed successfully for user {request.user.username}")
         
         return JsonResponse({
             'success': True,
             'result_url': result_url,
-            'message': 'Inpainting completed successfully!'
+            'message': 'Inpainting completed successfully via API!'
         })
         
     except json.JSONDecodeError:
@@ -372,7 +372,7 @@ def inpaint_image(request):
             'error': 'Invalid JSON data'
         })
     except Exception as e:
-        logger.error(f"Inpainting error: {e}")
+        logger.error(f"API inpainting error: {e}")
         return JsonResponse({
             'success': False,
             'error': f'Inpainting failed: {str(e)}'
@@ -430,22 +430,25 @@ def upload_for_inpainting(request):
 @login_required(login_url='/login/')
 def check_ai_status(request):
     """
-    Check if AI functionality is available
+    Check if AI functionality is available via Hugging Face API
     """
     if not AI_AVAILABLE:
         return JsonResponse({
             'available': False,
-            'message': 'AI functionality not available. Please install required dependencies.',
+            'message': 'AI functionality not available. Please check configuration.',
             'device': None
         })
     
     try:
         model = get_inpainting_model()
+        api_token = os.environ.get('HUGGINGFACE_API_TOKEN')
+        
         return JsonResponse({
             'available': True,
-            'message': 'AI functionality is available',
-            'device': model.device,
-            'model_loaded': model.loaded
+            'message': 'AI functionality available via Hugging Face API',
+            'device': 'Hugging Face API',
+            'model_loaded': bool(api_token),
+            'api_configured': bool(api_token)
         })
     except Exception as e:
         return JsonResponse({

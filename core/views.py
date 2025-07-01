@@ -126,101 +126,10 @@ def gallery(request):
     return render(request, 'gallery.html', context)
 
 def contact(request):
-    if request.method == 'POST':
-        # Form verilerini al
-        name = request.POST.get('name', '').strip()
-        email = request.POST.get('email', '').strip()
-        subject = request.POST.get('subject', '').strip()
-        message_content = request.POST.get('message', '').strip()
-        
-        # Validasyon
-        if not all([name, email, subject, message_content]):
-            messages.error(request, 'Lütfen tüm alanları doldurun.')
-            return render(request, 'contact.html', {
-                'title': 'Contact triX',
-                'form_data': {
-                    'name': name,
-                    'email': email,
-                    'subject': subject,
-                    'message': message_content
-                }
-            })
-        
-        try:
-            # Veritabanına kaydet
-            contact_message = ContactMessage.objects.create(
-                name=name,
-                email=email,
-                subject=subject,
-                message=message_content
-            )
-            
-            # Email gönder (admin'e)
-            try:
-                admin_email = 'aiopix.ai@gmail.com'  # Kullanıcının belirttiği email adresi
-                
-                email_subject = f'triX Contact Form: {subject}'
-                email_message = f"""
-Yeni iletişim formu mesajı:
-
-İsim: {name}
-Email: {email}
-Konu: {subject}
-
-Mesaj:
-{message_content}
-
----
-Bu mesaj triX iletişim formundan gönderilmiştir.
-Mesaj ID: {contact_message.id}
-Tarih: {contact_message.created_at.strftime('%d/%m/%Y %H:%M')}
-                """
-                
-                send_mail(
-                    email_subject,
-                    email_message,
-                    email,  # From email
-                    [admin_email],  # To email
-                    fail_silently=False,
-                )
-                
-                # Kullanıcıya teşekkür emaili gönder
-                thank_you_subject = 'triX - Mesajınız alındı'
-                thank_you_message = f"""
-Merhaba {name},
-
-triX iletişim formundan gönderdiğiniz mesajınız başarıyla alınmıştır.
-
-Konu: {subject}
-
-En kısa sürede size geri dönüş yapacağız.
-
-Teşekkürler,
-triX Ekibi
-                """
-                
-                send_mail(
-                    thank_you_subject,
-                    thank_you_message,
-                    'aiopix.ai@gmail.com',  # From admin email
-                    [email],
-                    fail_silently=True,  # Kullanıcı emaili başarısız olursa ana işlemi etkilemesin
-                )
-                
-                messages.success(request, 'Mesajınız başarıyla gönderildi! En kısa sürede size geri dönüş yapacağız.')
-                
-            except Exception as e:
-                logger.error(f"Contact form email failed: {e}")
-                messages.success(request, 'Mesajınız kaydedildi! En kısa sürede size geri dönüş yapacağız.')
-            
-            return redirect('core:contact')
-            
-        except Exception as e:
-            logger.error(f"Contact form save failed: {e}")
-            messages.error(request, 'Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.')
-    
+    # EmailJS frontend'de email gönderme işlemini hallediyor
+    # Bu view sadece sayfayı render ediyor
     context = {
-        'title': 'Contact triX'
+        'title': 'Contact triX - Send us a message'
     }
     return render(request, 'contact.html', context)
 

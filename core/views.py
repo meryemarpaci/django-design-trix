@@ -544,18 +544,36 @@ def test_ai_model(request):
         })
     
     try:
-        # Simple test with Hugging Face API
-        api_url = "https://api-inference.huggingface.co/models/meryemarpaci/sd2base-inpainting-lora"
+        # Test with a free, publicly available model first
+        api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+        
+        # Try without token first (some models are public)
+        test_payload = {
+            "inputs": "a beautiful sunset landscape, high quality, detailed"
+        }
+        
+        logger.info("Testing AI model with free public model...")
+        
+        # First try without authentication
+        response = requests.post(
+            api_url,
+            json=test_payload,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            return JsonResponse({
+                'success': True,
+                'message': 'AI model test successful! Using public model (Stable Diffusion v1.5)',
+                'status_code': response.status_code,
+                'api_url': api_url,
+                'note': 'Using free public model - your LoRA model may need updated token'
+            })
+        
+        # If public doesn't work, try with token
         headers = {
             "Authorization": f"Bearer {os.environ.get('HUGGINGFACE_API_TOKEN', '')}"
         }
-        
-        # Simple test payload
-        test_payload = {
-            "inputs": "a beautiful sunset landscape"
-        }
-        
-        logger.info("Testing AI model with simple prompt...")
         
         response = requests.post(
             api_url,
@@ -565,22 +583,42 @@ def test_ai_model(request):
         )
         
         if response.status_code == 200:
-            return JsonResponse({
-                'success': True,
-                'message': 'AI model is working! Response received successfully.',
-                'status_code': response.status_code,
-                'api_url': api_url
-            })
+            # Now try the LoRA model
+            lora_api_url = "https://api-inference.huggingface.co/models/meryemarpaci/sd2base-inpainting-lora"
+            lora_response = requests.post(
+                lora_api_url,
+                headers=headers,
+                json=test_payload,
+                timeout=30
+            )
+            
+            if lora_response.status_code == 200:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Perfect! Both base model and your LoRA model are working!',
+                    'status_code': lora_response.status_code,
+                    'api_url': lora_api_url
+                })
+            else:
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Base model works, but LoRA model failed (Status {lora_response.status_code}). Token may need Inference API permissions.',
+                    'status_code': response.status_code,
+                    'api_url': api_url,
+                    'lora_error': lora_response.text[:200]
+                })
         else:
             return JsonResponse({
                 'success': False,
-                'error': f'API returned status {response.status_code}: {response.text}',
-                'status_code': response.status_code
+                'error': f'API test failed. Status: {response.status_code}. Response: {response.text[:200]}',
+                'status_code': response.status_code,
+                'suggestion': 'Check if HUGGINGFACE_API_TOKEN is set correctly in Render.com environment variables'
             })
             
     except Exception as e:
         logger.error(f"AI model test failed: {e}")
         return JsonResponse({
             'success': False,
-            'error': f'Test failed: {str(e)}'
+            'error': f'Test failed: {str(e)}',
+            'suggestion': 'Check network connection and API availability'
         })

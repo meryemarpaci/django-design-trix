@@ -16,8 +16,9 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
     
-    # User profiles
+    # User profiles - IMPORTANT: Keep specific routes BEFORE dynamic routes
     path('profile/edit/', views.profile_edit, name='profile_edit'),
+    path('profile/settings/', views.profile_edit, name='profile_settings'), # Alternative URL
     path('profile/<str:username>/', views.profile_view, name='profile'),
     
     # Designs

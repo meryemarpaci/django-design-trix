@@ -292,40 +292,67 @@ def profile_view(request, username):
 
 @login_required(login_url='/login/')
 def profile_edit(request):
-    if request.method == 'POST':
-        # Kullanıcı bilgilerini güncelle
-        user = request.user
-        user.username = request.POST.get('username')
-        user.first_name = request.POST.get('first_name')
-        user.last_name = request.POST.get('last_name')
-        user.email = request.POST.get('email')
-        user.save()
+    """Enhanced profile edit with all new fields"""
+    try:
+        # Ensure user has a profile
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
         
-        # Profil bilgilerini güncelle
-        profile = user.profile
-        profile.bio = request.POST.get('bio')
-        profile.website = request.POST.get('website')
-        
-        # Avatar işleme
-        if 'avatar' in request.FILES:
-            if profile.avatar:
-                # Eski avatarı sil
-                if os.path.isfile(profile.avatar.path):
-                    os.remove(profile.avatar.path)
-            profile.avatar = request.FILES['avatar']
-        
-        # Avatar silme işlemi
-        if request.POST.get('remove_avatar') == 'on' and profile.avatar:
-            if os.path.isfile(profile.avatar.path):
-                os.remove(profile.avatar.path)
-            profile.avatar = None
-        
-        profile.save()
-        
-        messages.success(request, "Profil başarıyla güncellendi!")
-        return redirect('core:profile', username=user.username)
+        if request.method == 'POST':
+            # Kullanıcı bilgilerini güncelle
+            user = request.user
+            user.username = request.POST.get('username', user.username)
+            user.first_name = request.POST.get('first_name', '')
+            user.last_name = request.POST.get('last_name', '')
+            user.email = request.POST.get('email', user.email)
+            user.save()
+            
+            # Profil bilgilerini güncelle
+            profile.bio = request.POST.get('bio', '')
+            profile.website = request.POST.get('website', '')
+            profile.location = request.POST.get('location', '')
+            
+            # Birth date işleme
+            birth_date = request.POST.get('birth_date')
+            if birth_date:
+                try:
+                    from datetime import datetime
+                    profile.birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date()
+                except ValueError:
+                    profile.birth_date = None
+            
+            # Avatar işleme
+            if 'avatar' in request.FILES:
+                if profile.avatar:
+                    # Eski avatarı sil
+                    try:
+                        if os.path.isfile(profile.avatar.path):
+                            os.remove(profile.avatar.path)
+                    except:
+                        pass  # File might not exist
+                profile.avatar = request.FILES['avatar']
+            
+            # Avatar silme işlemi
+            if request.POST.get('remove_avatar') == 'on' and profile.avatar:
+                try:
+                    if os.path.isfile(profile.avatar.path):
+                        os.remove(profile.avatar.path)
+                except:
+                    pass
+                profile.avatar = None
+            
+            profile.save()
+            
+            messages.success(request, "Profil başarıyla güncellendi!")
+            return redirect('core:profile', username=user.username)
+            
+    except Exception as e:
+        logger.error(f"Profile edit error: {e}")
+        messages.error(request, "Profil güncellenirken bir hata oluştu.")
     
-    return render(request, 'auth/profile_edit.html', {'user': request.user})
+    return render(request, 'auth/profile_edit.html', {
+        'user': request.user,
+        'profile': request.user.profile
+    })
 
 def design_detail(request, design_id):
     design = get_object_or_404(Design, id=design_id)

@@ -67,6 +67,17 @@
                 <label for="website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
                 <input type="url" id="website" name="website" value="{{ user.profile.website }}" placeholder="https://example.com" class="form-input w-full">
             </div>
+
+            <div class="mb-6">
+                <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Konum</label>
+                <input type="text" id="location" name="location" value="{{ user.profile.location }}" placeholder="Şehir, Ülke" class="form-input w-full">
+            </div>
+
+            <div class="mb-6">
+                <label for="birth_date" class="block text-sm font-medium text-gray-700 mb-1">Doğum Tarihi</label>
+                <input type="date" id="birth_date" name="birth_date" value="{% if user.profile.birth_date %}{{ user.profile.birth_date|date:'Y-m-d' }}{% endif %}" class="form-input w-full">
+                <p class="text-xs text-gray-500 mt-1">İsteğe bağlı - sadece yaş bilgisi gösterilir</p>
+            </div>
             
             <div class="gradient-divider my-6"></div>
             

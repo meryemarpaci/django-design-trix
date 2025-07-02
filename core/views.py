@@ -706,91 +706,95 @@ def test_ai_model(request):
                 'suggestion': 'Token should start with "hf_" - please check your token'
             })
 
-        # Test with a free, publicly available model first
-        api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+        # Test with Stable Diffusion 2.1 - faster and more reliable
+        api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1-base"
         
-        # Try without token first (some models are public)
+        # Simple Turkish-friendly test prompt
         test_payload = {
-            "inputs": "a beautiful sunset landscape, high quality, detailed"
+            "inputs": "a beautiful cat sitting in a garden, digital art, high quality",
+            "parameters": {
+                "num_inference_steps": 20,
+                "guidance_scale": 7.5
+            }
         }
         
-        logger.info("Testing AI model with free public model...")
-        
-        # First try without authentication
-        response = requests.post(
-            api_url,
-            json=test_payload,
-            timeout=30
-        )
-        
-        if response.status_code == 200:
-            return JsonResponse({
-                'success': True,
-                'message': 'AI model test successful! Using public model (Stable Diffusion v1.5)',
-                'status_code': response.status_code,
-                'api_url': api_url,
-                'note': 'Using free public model - your LoRA model may need updated token'
-            })
-        
-        # If public doesn't work, try with token
         headers = {
             "Authorization": f"Bearer {api_token}"
         }
+        
+        logger.info("Testing AI image generation with Stable Diffusion 2.1...")
         
         response = requests.post(
             api_url,
             headers=headers,
             json=test_payload,
-            timeout=30
+            timeout=45  # Increased timeout for image generation
         )
         
         if response.status_code == 200:
-            # Now try the LoRA model
-            lora_api_url = "https://api-inference.huggingface.co/models/meryemarpaci/sd2base-inpainting-lora"
-            lora_response = requests.post(
-                lora_api_url,
-                headers=headers,
-                json=test_payload,
-                timeout=30
-            )
-            
-            if lora_response.status_code == 200:
+            # Check if response contains image data
+            content_type = response.headers.get('content-type', '')
+            if 'image' in content_type or len(response.content) > 1000:
                 return JsonResponse({
                     'success': True,
-                    'message': 'Perfect! Both base model and your LoRA model are working!',
-                    'status_code': lora_response.status_code,
-                    'api_url': lora_api_url
+                    'message': 'AI görüntü testi başarılı! Stable Diffusion 2.1 modeli çalışıyor ✨',
+                    'status_code': response.status_code,
+                    'api_url': api_url,
+                    'image_size': len(response.content),
+                    'note': 'Görüntü başarıyla oluşturuldu - AI sistemi hazır!'
                 })
             else:
                 return JsonResponse({
-                    'success': True,
-                    'message': f'Base model works, but LoRA model failed (Status {lora_response.status_code}). Token may need Inference API permissions.',
-                    'status_code': response.status_code,
-                    'api_url': api_url,
-                    'lora_error': lora_response.text[:200]
+                    'success': False,
+                    'error': 'API yanıt verdi ancak görüntü verisi alınamadı',
+                    'response_preview': response.text[:200]
                 })
+                
+        elif response.status_code == 503:
+            return JsonResponse({
+                'success': False,
+                'error': 'Model şu anda yükleniyor, lütfen 30 saniye bekleyip tekrar deneyin',
+                'status_code': response.status_code,
+                'suggestion': 'Model ilk kullanımda yüklenmesi biraz zaman alabilir'
+            })
+            
+        elif response.status_code == 401:
+            return JsonResponse({
+                'success': False,
+                'error': 'API token geçersiz veya süresi dolmuş',
+                'status_code': response.status_code,
+                'suggestion': 'Hugging Face token\'ınızı kontrol edin ve yenileyin'
+            })
+            
         else:
             error_text = response.text[:200]
             if 'Invalid credentials' in error_text:
                 return JsonResponse({
                     'success': False,
-                    'error': f'Invalid API token. Status: {response.status_code}',
-                    'suggestion': 'Please check that your HUGGINGFACE_API_TOKEN is valid and has not expired'
+                    'error': f'Geçersiz API token. Status: {response.status_code}',
+                    'suggestion': 'HUGGINGFACE_API_TOKEN\'ın geçerli olduğunu ve süresinin dolmadığını kontrol edin'
                 })
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': f'API test failed. Status: {response.status_code}. Response: {error_text}',
+                    'error': f'API testi başarısız. Status: {response.status_code}. Yanıt: {error_text}',
                     'status_code': response.status_code,
-                    'suggestion': 'Check if HUGGINGFACE_API_TOKEN is set correctly in Render.com environment variables'
+                    'suggestion': 'Render.com ortam değişkenlerinde HUGGINGFACE_API_TOKEN\'ın doğru ayarlandığını kontrol edin'
                 })
             
+    except requests.exceptions.Timeout:
+        return JsonResponse({
+            'success': False,
+            'error': 'API isteği zaman aşımına uğradı',
+            'suggestion': 'Model yükleniyor olabilir, lütfen tekrar deneyin'
+        })
+        
     except Exception as e:
         logger.error(f"AI model test failed: {e}")
         return JsonResponse({
             'success': False,
-            'error': f'Test failed: {str(e)}',
-            'suggestion': 'Check network connection and API availability'
+            'error': f'Test başarısız: {str(e)}',
+            'suggestion': 'Ağ bağlantısını ve API erişilebilirliğini kontrol edin'
         })
 
 # Social Features

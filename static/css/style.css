@@ -30,6 +30,30 @@
     box-sizing: border-box;
 }
 
+/* Force SVG icon sizes */
+.trix-navbar svg,
+.trix-nav-item svg,
+nav svg,
+.nav-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+}
+
+/* Mobile specific */
+@media (max-width: 768px) {
+    .trix-navbar svg,
+    .trix-nav-item svg,
+    nav svg,
+    .nav-icon svg {
+        width: 14px !important;
+        height: 14px !important;
+        max-width: 14px !important;
+        max-height: 14px !important;
+    }
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');
 
 body {
@@ -1011,6 +1035,31 @@ nav.scrolled {
     transition: all 0.3s ease;
 }
 
+#mobile-menu svg {
+    width: 24px !important;
+    height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+}
+
+#menu-close svg {
+    width: 28px !important;
+    height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+}
+
+/* Footer and general SVG icon constraints */
+footer svg,
+.glass-card svg,
+.btn svg,
+.ice-effect svg {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+}
+
 /* Loading Indicator for Images */
 .image-loading {
     position: relative;
@@ -1104,9 +1153,9 @@ main {
 
 .trix-navbar {
     position: relative;
-    width: 320px;
-    height: 70px;
-    border-radius: 0 0 300px 300px;
+    width: 580px;
+    height: 100px;
+    border-radius: 0 0 500px 500px;
     background: rgba(42, 30, 80, 0.4);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -1127,15 +1176,15 @@ main {
 
 /* Ensure proper border-radius and positioning */
 .trix-navbar:not(.scrolled) {
-    border-radius: 0 0 300px 300px;
-    clip-path: ellipse(200px 70px at center top);
+    border-radius: 0 0 500px 500px;
+    clip-path: ellipse(400px 100px at center top);
 }
 
 .trix-navbar.scrolled {
-    width: 450px;
-    height: 60px;
-    border-radius: 0 0 250px 250px;
-    clip-path: ellipse(225px 60px at center top);
+    width: 700px;
+    height: 80px;
+    border-radius: 0 0 350px 350px;
+    clip-path: ellipse(350px 80px at center top);
 }
 
 .trix-nav {
@@ -1158,8 +1207,8 @@ main {
 /* Navbar icons */
 .trix-nav-item {
     position: relative;
-    width: 35px;
-    height: 35px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     background: rgba(88, 28, 135, 0.4);
     backdrop-filter: blur(15px);
@@ -1195,27 +1244,27 @@ main {
 
 /* Pozisyonlar - yuvarlatılmış navbar için, öğe sayısına göre düzenlenmiş */
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(1) {
-    transform: translateY(-8px) translateX(-50px);
+    transform: translateY(-10px) translateX(-80px);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(2) {
-    transform: translateY(3px) translateX(-30px);
+    transform: translateY(5px) translateX(-50px);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(3) {
-    transform: translateY(8px) translateX(-15px);
+    transform: translateY(12px) translateX(-20px);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(4) {
-    transform: translateY(8px) translateX(15px);
+    transform: translateY(12px) translateX(20px);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(5) {
-    transform: translateY(3px) translateX(30px);
+    transform: translateY(5px) translateX(50px);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(6) {
-    transform: translateY(-8px) translateX(50px);
+    transform: translateY(-10px) translateX(80px);
 }
 
 /* Kaydırılmış navbar'da tüm öğeler düz sıralanır */
@@ -1225,27 +1274,27 @@ main {
 
 /* Hover durumunda transform korunmalı, yalnızca scale eklenmeli */
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(1):hover {
-    transform: translateY(-8px) translateX(-50px) scale(1.15);
+    transform: translateY(-10px) translateX(-80px) scale(1.15);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(2):hover {
-    transform: translateY(3px) translateX(-30px) scale(1.15);
+    transform: translateY(5px) translateX(-50px) scale(1.15);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(3):hover {
-    transform: translateY(8px) translateX(-15px) scale(1.15);
+    transform: translateY(12px) translateX(-20px) scale(1.15);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(4):hover {
-    transform: translateY(8px) translateX(15px) scale(1.15);
+    transform: translateY(12px) translateX(20px) scale(1.15);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(5):hover {
-    transform: translateY(3px) translateX(30px) scale(1.15);
+    transform: translateY(5px) translateX(50px) scale(1.15);
 }
 
 .trix-navbar:not(.scrolled) .trix-nav-item:nth-child(6):hover {
-    transform: translateY(-8px) translateX(50px) scale(1.15);
+    transform: translateY(-10px) translateX(80px) scale(1.15);
 }
 
 .trix-nav-item.active {
@@ -1261,8 +1310,10 @@ main {
 .trix-nav-item:nth-child(6) { --index: 6; }
 
 .trix-nav-item svg {
-    width: 18px;
-    height: 18px;
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
     color: rgba(255, 255, 255, 0.95);
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
 }
@@ -1298,8 +1349,10 @@ main {
     }
 
     .trix-nav-item svg {
-        width: 16px;
-        height: 16px;
+        width: 14px !important;
+        height: 14px !important;
+        max-width: 14px !important;
+        max-height: 14px !important;
     }
 }
 

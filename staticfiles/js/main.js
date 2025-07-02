@@ -3,8 +3,8 @@
 window.addEventListener('DOMContentLoaded', () => {
     console.log('DOM content loaded - initializing components');
     
-    // Orb menüyü başlat
-    initOrbMenu();
+    // TriX navbar'ı başlat
+    initTrixNavbar();
     
     // Skills bölümünü başlat
     setupSkillsSection();
@@ -17,6 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
     createScrollProgressBar();
     initSmoothScroll();
     initTimelineAnimations();
+    initScrollAnimationDemo(); // Scroll animasyon demosunu başlat
     
     // ThreeJS bileşenini başlat
     if (typeof THREE !== 'undefined') {
@@ -28,62 +29,86 @@ window.addEventListener('DOMContentLoaded', () => {
     preloadImages();
 });
 
-// Orb menüyü başlat
-function initOrbMenu() {
-    console.log('Initializing orb menu');
-    const orbMenu = document.getElementById('orb-menu');
+// TriX navbar'ı başlat
+function initTrixNavbar() {
+    console.log('Initializing trix navbar');
+    const trixNavbar = document.querySelector('.trix-navbar');
     
-    if (!orbMenu) {
-        console.error('Orb menu element not found!');
+    if (!trixNavbar) {
+        console.error('TriX navbar element not found!');
         return;
     }
     
-    console.log('Orb menu found:', orbMenu);
+    // Get all navigation items
+    const navItems = document.querySelectorAll('.trix-nav-item');
     
-    // Başlangıç durumunu ayarla - orb menu görünür hale getir
-    setTimeout(() => {
-        orbMenu.style.transform = 'translateY(-55px)';
-        console.log('Initial transform applied to orb menu');
-    }, 100);
-    
-    // Toggle düğmesini ayarla
-    const orbToggle = document.getElementById('orb-toggle');
-    if (orbToggle) {
-        console.log('Orb toggle found');
-        
-        orbToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Orb toggle clicked');
-            orbMenu.classList.toggle('open');
+    // Add active class on click
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // Remove active class from all items
+            navItems.forEach(i => i.classList.remove('active'));
+            // Add active class to clicked item
+            item.classList.add('active');
         });
-    } else {
-        console.error('Orb toggle not found!');
+    });
+    
+    // Set initial state
+    let isScrolled = window.scrollY > 100;
+    updateNavbarState(isScrolled);
+    
+    // Use requestAnimationFrame for smooth scroll handling
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    
+    window.addEventListener('scroll', () => {
+        lastScrollY = window.scrollY;
+        
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const shouldBeScrolled = lastScrollY > 100;
+                
+                if (isScrolled !== shouldBeScrolled) {
+                    isScrolled = shouldBeScrolled;
+                    updateNavbarState(isScrolled);
+                }
+                
+                ticking = false;
+            });
+            
+            ticking = true;
+        }
+    }, { passive: true });
+    
+    // Handle resize
+    window.addEventListener('resize', () => {
+        updateNavbarState(isScrolled);
+    });
+    
+    // Update navbar state function with improved animation
+    function updateNavbarState(scrolled) {
+        // Don't add the transitioning class if it's already in the state we want
+        const isCurrentlyScrolled = trixNavbar.classList.contains('scrolled');
+        if (isCurrentlyScrolled === scrolled) return;
+        
+        // Add a class to prevent hover effects during transition
+        trixNavbar.classList.add('transitioning');
+        
+        // Force a reflow to ensure CSS transitions work properly
+        void trixNavbar.offsetWidth;
+        
+        if (scrolled) {
+            // Scrolled state - expanded navbar
+            trixNavbar.classList.add('scrolled');
+        } else {
+            // Top state - circular navbar
+            trixNavbar.classList.remove('scrolled');
+        }
+        
+        // Remove the transitioning class after animation completes
+        setTimeout(() => {
+            trixNavbar.classList.remove('transitioning');
+        }, 600); // Slightly longer than the CSS transition duration for safety
     }
-    
-    // Hover işlevselliği ekle
-    orbMenu.addEventListener('mouseenter', () => {
-        console.log('Mouse entered orb menu');
-        orbMenu.classList.add('open');
-    });
-    
-    orbMenu.addEventListener('mouseleave', () => {
-        console.log('Mouse left orb menu');
-        orbMenu.classList.remove('open');
-    });
-    
-
-    orbNavItems.forEach(item => {
-        item.addEventListener('mouseenter', () => {
-            item.style.transform = 'translateY(-5px) scale(1.1)';
-            item.style.boxShadow = 'var(--ice-glow)';
-        });
-        
-        item.addEventListener('mouseleave', () => {
-            item.style.transform = '';
-            item.style.boxShadow = '';
-        });
-    });
 }
 
 // Skills bölümünü ayarla ve ilerleme çubuklarını oluştur
@@ -655,65 +680,36 @@ function initThreeJS() {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(2, 2, 2);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    directionalLight.position.set(1, 2, 3);
     scene.add(directionalLight);
 
     // Add point lights for color
-    const purpleLight = new THREE.PointLight(0x9333ea, 1, 10);
-    purpleLight.position.set(2, 2, 2);
+    const purpleLight = new THREE.PointLight(0x9333ea, 2, 10);
+    purpleLight.position.set(2, 1, 2);
     scene.add(purpleLight);
 
-    const pinkLight = new THREE.PointLight(0xec4899, 1, 10);
-    pinkLight.position.set(-2, -2, -2);
+    const pinkLight = new THREE.PointLight(0xec4899, 2, 10);
+    pinkLight.position.set(-2, -1, -2);
     scene.add(pinkLight);
 
-    // Create main geometric shape
-    const geometry = new THREE.TorusKnotGeometry(1, 0.4, 64, 16);
-    const material = new THREE.MeshStandardMaterial({
-        color: 0x9333ea,
-        metalness: 0.8,
-        roughness: 0.2,
-        emissive: 0x330066,
-        emissiveIntensity: 0.1
-    });
+    const blueLight = new THREE.PointLight(0x06b6d4, 2, 10);
+    blueLight.position.set(0, 2, -3);
+    scene.add(blueLight);
 
-    const torusKnot = new THREE.Mesh(geometry, material);
-    scene.add(torusKnot);
-
-    // Add small floating elements
-    const smallGeometries = [
-        new THREE.TetrahedronGeometry(0.2),
-        new THREE.OctahedronGeometry(0.2),
-        new THREE.IcosahedronGeometry(0.2)
-    ];
-
-    const smallGroup = new THREE.Group();
+    // Create a group for the 3D object
+    const objectGroup = new THREE.Group();
+    scene.add(objectGroup);
     
-    for (let i = 0; i < 6; i++) {
-        const geometry = smallGeometries[Math.floor(Math.random() * smallGeometries.length)];
-        const material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            metalness: 0.8,
-            roughness: 0.2
-        });
-        
-        const mesh = new THREE.Mesh(geometry, material);
-        
-        // Position around the torus knot
-        const angle = Math.random() * Math.PI * 2;
-        const radius = 2 + Math.random();
-        mesh.position.x = Math.cos(angle) * radius;
-        mesh.position.z = Math.sin(angle) * radius;
-        mesh.position.y = (Math.random() - 0.5) * 2;
-        
-        smallGroup.add(mesh);
-    }
+    // Create a stylized 3D avatar instead of gem
+    create3DAvatar();
     
-    scene.add(smallGroup);
-
+    // Create triX text with handwriting animation
+    createTriXText();
+    
     // Position camera
-    camera.position.z = 4;
+    camera.position.z = 5;
+    camera.position.y = 1.2;
 
     // Animation loop
     const clock = new THREE.Clock();
@@ -721,28 +717,59 @@ function initThreeJS() {
     function animate() {
         const elapsedTime = clock.getElapsedTime();
         
-        // Rotate the torus knot (slower for lighter animation)
-        torusKnot.rotation.x = elapsedTime * 0.2;
-        torusKnot.rotation.y = elapsedTime * 0.3;
+        // Rotate the avatar slowly
+        objectGroup.rotation.y = Math.sin(elapsedTime * 0.2) * 0.2 + 0.3;
         
-        // Move lights
+        // Make the avatar float up and down slightly
+        objectGroup.position.y = Math.sin(elapsedTime * 0.5) * 0.2;
+        
+        // Animate crystals and other elements
+        objectGroup.children.forEach(child => {
+            if (child.userData && child.userData.radius) {
+                // This is a crystal or particle
+                const userData = child.userData;
+                
+                // Update angle for orbital movement
+                userData.angle += userData.speed * 0.01;
+                
+                // Calculate new position
+                child.position.x = Math.cos(userData.angle) * userData.radius;
+                child.position.z = Math.sin(userData.angle) * userData.radius;
+                
+                // Add a slight vertical bounce
+                child.position.y = userData.initialY + Math.sin(elapsedTime * userData.verticalSpeed) * 0.1;
+                
+                // Rotate the crystal
+                child.rotation.x += userData.rotationSpeed.x;
+                child.rotation.y += userData.rotationSpeed.y;
+                child.rotation.z += userData.rotationSpeed.z;
+            }
+            
+            // Animate sparkles
+            if (child.geometry && child.geometry.type === 'SphereGeometry' && child.geometry.parameters.radius < 0.1) {
+                child.position.y = child.userData.initialY + Math.sin(elapsedTime * child.userData.floatSpeed) * 0.1;
+                
+                // Pulse opacity
+                if (child.material) {
+                    child.material.opacity = 0.5 + Math.sin(elapsedTime * 2 + child.userData.angle) * 0.3;
+                }
+                
+                // Move in small circles
+                const sparkleAngle = elapsedTime * 0.5 + child.userData.angle;
+                child.position.x += Math.cos(sparkleAngle) * 0.002;
+                child.position.z += Math.sin(sparkleAngle) * 0.002;
+            }
+        });
+        
+        // Move lights in circular pattern
         purpleLight.position.x = Math.sin(elapsedTime * 0.3) * 3;
         purpleLight.position.z = Math.cos(elapsedTime * 0.3) * 3;
         
-        pinkLight.position.x = Math.sin(elapsedTime * 0.3 + Math.PI) * 3;
-        pinkLight.position.z = Math.cos(elapsedTime * 0.3 + Math.PI) * 3;
+        pinkLight.position.x = Math.sin(elapsedTime * 0.4 + Math.PI) * 3;
+        pinkLight.position.z = Math.cos(elapsedTime * 0.4 + Math.PI) * 3;
         
-        // Rotate small objects (slower for lighter animation)
-        smallGroup.children.forEach((obj, i) => {
-            const speed = 0.1 + (i * 0.03);
-            const radius = 2 + (i * 0.2);
-            
-            obj.position.x = Math.cos(elapsedTime * speed) * radius;
-            obj.position.z = Math.sin(elapsedTime * speed) * radius;
-            
-            obj.rotation.x += 0.005;
-            obj.rotation.y += 0.005;
-        });
+        blueLight.position.x = Math.sin(elapsedTime * 0.5 + Math.PI / 2) * 3;
+        blueLight.position.z = Math.cos(elapsedTime * 0.5 + Math.PI / 2) * 3;
         
         renderer.render(scene, camera);
         requestAnimationFrame(animate);
@@ -750,13 +777,18 @@ function initThreeJS() {
     
     animate();
     
-    // Mouse interaction (reduced sensitivity for lighter effect)
+    // Mouse interaction - make the avatar follow the mouse slightly
     document.addEventListener('mousemove', (event) => {
         const x = (event.clientX / window.innerWidth) - 0.5;
         const y = (event.clientY / window.innerHeight) - 0.5;
         
-        torusKnot.rotation.x += y * 0.005;
-        torusKnot.rotation.y += x * 0.005;
+        // Make object turn slightly to follow mouse
+        const targetRotationY = x * 0.5 + 0.3;
+        const targetRotationX = -y * 0.3 - 0.2;
+        
+        // Apply with damping for smooth movement
+        objectGroup.rotation.y += (targetRotationY - objectGroup.rotation.y) * 0.05;
+        objectGroup.rotation.x += (targetRotationX - objectGroup.rotation.x) * 0.05;
     });
     
     // Handle resize
@@ -765,6 +797,250 @@ function initThreeJS() {
         camera.updateProjectionMatrix();
         renderer.setSize(container.clientWidth, container.clientHeight);
     });
+    
+    function createTriXText() {
+        // Create a simple 3D text for "triX"
+        const textMaterial = new THREE.MeshPhongMaterial({
+            color: 0xff33cc,
+            emissive: 0xff33cc,
+            emissiveIntensity: 0.5,
+            specular: 0xffffff,
+            shininess: 100
+        });
+        
+        // Load font and create text
+        const loader = new THREE.FontLoader();
+        
+        // Create a simple placeholder text while font loads
+        const geometry = new THREE.PlaneGeometry(2, 0.5);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xff33cc,
+            transparent: true,
+            opacity: 0.8,
+            side: THREE.DoubleSide
+        });
+        
+        const textMesh = new THREE.Mesh(geometry, material);
+        textMesh.position.set(0, 1.5, 0);
+        objectGroup.add(textMesh);
+        
+        // Create sparkles around the text
+        for (let i = 0; i < 20; i++) {
+            const sparkle = new THREE.Mesh(
+                new THREE.SphereGeometry(0.03 + Math.random() * 0.02, 8, 8),
+                new THREE.MeshBasicMaterial({
+                    color: 0xff33cc,
+                    transparent: true,
+                    opacity: 0.7,
+                    blending: THREE.AdditiveBlending
+                })
+            );
+            
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 0.5 + Math.random() * 1;
+            sparkle.position.set(
+                Math.cos(angle) * radius,
+                1.5 + (Math.random() - 0.5) * 0.5,
+                Math.sin(angle) * radius
+            );
+            
+            sparkle.userData = {
+                initialY: sparkle.position.y,
+                floatSpeed: 0.5 + Math.random() * 1,
+                angle: Math.random() * Math.PI * 2,
+                radius: 0.1 + Math.random() * 0.2,
+                rotationSpeed: {
+                    x: (Math.random() - 0.5) * 0.02,
+                    y: (Math.random() - 0.5) * 0.02,
+                    z: (Math.random() - 0.5) * 0.02
+                }
+            };
+            
+            objectGroup.add(sparkle);
+        }
+        
+        // Create a canvas for the text
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw text on canvas
+        ctx.fillStyle = 'transparent';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = 'bold 80px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Create gradient
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        gradient.addColorStop(0, '#FF3366');
+        gradient.addColorStop(0.5, '#9933FF');
+        gradient.addColorStop(1, '#33CCFF');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillText('triX', canvas.width / 2, canvas.height / 2);
+        
+        // Add glow
+        ctx.shadowColor = '#FF33CC';
+        ctx.shadowBlur = 15;
+        ctx.fillText('triX', canvas.width / 2, canvas.height / 2);
+        
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        
+        // Create a plane with the texture
+        const textPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(2, 1),
+            new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending
+            })
+        );
+        
+        textPlane.position.set(0, 1.5, 0);
+        objectGroup.add(textPlane);
+    }
+    
+    function create3DAvatar() {
+        // Avatar materials with glossy appearance
+        const purpleMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x9333ea,
+            metalness: 0.2,
+            roughness: 0.3,
+            transparent: true,
+            opacity: 0.9
+        });
+        
+        const pinkMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xec4899,
+            metalness: 0.3,
+            roughness: 0.3,
+            transparent: true,
+            opacity: 0.9
+        });
+        
+        const blueMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x06b6d4,
+            metalness: 0.25,
+            roughness: 0.3,
+            transparent: true,
+            opacity: 0.9
+        });
+        
+        const whiteMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            metalness: 0.3,
+            roughness: 0.2,
+            transparent: true,
+            opacity: 0.95
+        });
+        
+        // Create head
+        const head = new THREE.Mesh(
+            new THREE.SphereGeometry(0.8, 32, 32),
+            whiteMaterial
+        );
+        head.position.y = 1.2;
+        objectGroup.add(head);
+        
+        // Create eyes
+        const leftEye = new THREE.Mesh(
+            new THREE.SphereGeometry(0.12, 16, 16),
+            purpleMaterial
+        );
+        leftEye.position.set(-0.25, 1.3, 0.65);
+        objectGroup.add(leftEye);
+        
+        const rightEye = new THREE.Mesh(
+            new THREE.SphereGeometry(0.12, 16, 16),
+            purpleMaterial
+        );
+        rightEye.position.set(0.25, 1.3, 0.65);
+        objectGroup.add(rightEye);
+        
+        // Create body
+        const body = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.7, 0.5, 1.5, 32),
+            pinkMaterial
+        );
+        body.position.y = 0;
+        objectGroup.add(body);
+        
+        // Create arms
+        const leftArm = new THREE.Mesh(
+            new THREE.CapsuleGeometry(0.2, 0.7, 8, 8),
+            blueMaterial
+        );
+        leftArm.position.set(-0.9, 0.2, 0);
+        leftArm.rotation.z = Math.PI / 6;
+        objectGroup.add(leftArm);
+        
+        const rightArm = new THREE.Mesh(
+            new THREE.CapsuleGeometry(0.2, 0.7, 8, 8),
+            blueMaterial
+        );
+        rightArm.position.set(0.9, 0.2, 0);
+        rightArm.rotation.z = -Math.PI / 6;
+        objectGroup.add(rightArm);
+        
+        // Create an ice crystal halo around the avatar
+        const haloParticleCount = 30;
+        
+        for (let i = 0; i < haloParticleCount; i++) {
+            const angle = (i / haloParticleCount) * Math.PI * 2;
+            const radius = 1.5 + Math.random() * 0.5;
+            const height = 0.5 + Math.random() * 1.5;
+            
+            const crystalGeometry = new THREE.TetrahedronGeometry(0.1 + Math.random() * 0.15, 0);
+            const crystalMaterial = i % 3 === 0 ? purpleMaterial : i % 3 === 1 ? pinkMaterial : blueMaterial;
+            
+            const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
+            crystal.position.x = Math.cos(angle) * radius;
+            crystal.position.y = height;
+            crystal.position.z = Math.sin(angle) * radius;
+            crystal.rotation.x = Math.random() * Math.PI;
+            crystal.rotation.z = Math.random() * Math.PI;
+            
+            // Add animation data
+            crystal.userData = {
+                initialX: crystal.position.x,
+                initialZ: crystal.position.z,
+                initialY: crystal.position.y,
+                radius: radius,
+                angle: angle,
+                speed: 0.2 + Math.random() * 0.3,
+                verticalSpeed: 0.5 + Math.random() * 0.5,
+                rotationSpeed: {
+                    x: (Math.random() - 0.5) * 0.02,
+                    y: (Math.random() - 0.5) * 0.02,
+                    z: (Math.random() - 0.5) * 0.02
+                }
+            };
+            
+            objectGroup.add(crystal);
+        }
+        
+        // Add a circular platform beneath the avatar
+        const platform = new THREE.Mesh(
+            new THREE.CylinderGeometry(1.2, 1.2, 0.1, 32),
+            new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                metalness: 0.5,
+                roughness: 0.1,
+                transparent: true,
+                opacity: 0.7
+            })
+        );
+        platform.position.y = -0.8;
+        objectGroup.add(platform);
+        
+        // Position avatar
+        objectGroup.rotation.x = -0.2;
+        objectGroup.rotation.y = 0.3;
+    }
 }
 
 // Create animated particles
@@ -820,4 +1096,35 @@ function preloadImages() {
             newImg.src = src;
         }
     });
+}
+
+// Scroll animasyon demosunu başlat
+function initScrollAnimationDemo() {
+    console.log('Initializing scroll animation demo');
+    const scrollAnimationDemo = document.getElementById('scroll-animation-demo');
+    
+    if (!scrollAnimationDemo) {
+        console.error('Scroll animation demo container not found!');
+        return;
+    }
+    
+    // Başlık içeriği
+    const titleHtml = `
+        <h1 class="text-4xl font-semibold text-black dark:text-white">
+            triX ile oluşturuldu <br />
+        </h1>
+    `;
+    
+    // İçerik - bir görsel ekleyelim
+    const contentHtml = `
+        <img 
+            src="static/images/madesign1.png" 
+            alt="3D Design" 
+            class="mx-auto rounded-2xl object-cover h-full object-center"
+            draggable="false"
+        />
+    `;
+    
+    // Scroll animasyonu oluştur
+    createScrollAnimation('scroll-animation-demo', titleHtml, contentHtml);
 } 

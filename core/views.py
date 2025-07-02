@@ -158,7 +158,6 @@ def register_view(request):
                 
             except Exception as e:
                 logger.error(f"Error creating user: {e}")
-                logger.error(f"Error creating user: {e}")
         else:
             # Log form errors for debugging
             for field, errors in form.errors.items():
@@ -170,6 +169,8 @@ def register_view(request):
     return render(request, 'auth/register.html', {'form': form})
 
 def login_view(request):
+    error_message = None
+    
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         
@@ -180,19 +181,22 @@ def login_view(request):
             
             if user is not None and user.is_active:
                 login(request, user)
-                # Mesaj göstermeme, sadece redirect
+                # Başarılı giriş - redirect
                 next_url = request.GET.get('next')
                 if next_url:
                     return redirect(next_url)
                 return redirect('core:home')
             else:
-                pass  # Silent fail
+                error_message = "Kullanıcı adı veya şifre hatalı!"
         else:
-            pass  # Silent fail
+            error_message = "Kullanıcı adı veya şifre hatalı!"
     else:
         form = AuthenticationForm()
     
-    return render(request, 'auth/login.html', {'form': form})
+    return render(request, 'auth/login.html', {
+        'form': form,
+        'error_message': error_message
+    })
 
 def logout_view(request):
     logout(request)

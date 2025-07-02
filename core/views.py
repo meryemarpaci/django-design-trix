@@ -3,7 +3,6 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import UserProfile, Design, Like, Comment, Follow, DesignView, ContactMessage
@@ -45,11 +44,6 @@ settings.DEBUG = True
 # Create your views here.
 
 def home(request):
-    # Debug: Authentication durumu
-    logger.info(f"Home view - User: {request.user}")
-    logger.info(f"Is authenticated: {request.user.is_authenticated}")
-    logger.info(f"Session key: {request.session.session_key}")
-    
     # Sadece platform istatistikleri - tasarımları galeri'de gösterelim
     total_designs = Design.objects.filter(status='published').count()
     total_users = User.objects.count()
@@ -160,18 +154,16 @@ def register_view(request):
                     logger.info(f"Profile created for user {user.username}")
                 
                 login(request, user)
-                messages.success(request, f"Kayıt başarılı! triX'e hoş geldiniz, {user.username}!")
                 return redirect('core:home')
                 
             except Exception as e:
                 logger.error(f"Error creating user: {e}")
-                messages.error(request, f"Kayıt sırasında bir hata oluştu: {e}")
+                logger.error(f"Error creating user: {e}")
         else:
             # Log form errors for debugging
             for field, errors in form.errors.items():
                 for error in errors:
                     logger.error(f"Form error in {field}: {error}")
-            messages.error(request, "Kayıt başarısız. Lütfen hataları düzeltin.")
     else:
         form = UserCreationForm()
     
@@ -181,48 +173,22 @@ def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         
-        # Debug: Form gelen verileri yazdır
-        logger.info(f"Login attempt - Username: {request.POST.get('username')}")
-        logger.info(f"Form is valid: {form.is_valid()}")
-        
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-            
-            # Debug: Authentication öncesi
-            logger.info(f"Authenticating user: {username}")
             user = authenticate(request=request, username=username, password=password)
             
-            if user is not None:
-                # Debug: User bulundu
-                logger.info(f"User found: {user.username}, is_active: {user.is_active}")
-                
-                if user.is_active:
-                    login(request, user)
-                    # Session debug
-                    logger.info(f"User logged in. Session key: {request.session.session_key}")
-                    logger.info(f"User is authenticated: {request.user.is_authenticated}")
-                    
-                    messages.success(request, f"Hoş geldiniz, {username}!")
-                    
-                    # Check if there's a next parameter
-                    next_url = request.GET.get('next')
-                    if next_url:
-                        return redirect(next_url)
-                    return redirect('core:home')
-                else:
-                    logger.warning(f"User {username} is not active")
-                    messages.error(request, "Hesabınız aktif değil.")
+            if user is not None and user.is_active:
+                login(request, user)
+                # Mesaj göstermeme, sadece redirect
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                return redirect('core:home')
             else:
-                logger.warning(f"Authentication failed for user: {username}")
-                messages.error(request, "Geçersiz kullanıcı adı veya şifre.")
+                pass  # Silent fail
         else:
-            # Debug: Form hataları
-            logger.error(f"Form validation failed: {form.errors}")
-            for field, errors in form.errors.items():
-                for error in errors:
-                    logger.error(f"Form error in {field}: {error}")
-            messages.error(request, "Geçersiz kullanıcı adı veya şifre.")
+            pass  # Silent fail
     else:
         form = AuthenticationForm()
     
@@ -230,7 +196,6 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    messages.success(request, "Başarıyla çıkış yaptınız!")
     return redirect('core:home')
 
 @login_required(login_url='/login/')
@@ -314,12 +279,10 @@ def profile_edit(request):
             
             profile.save()
             
-            messages.success(request, "Profil başarıyla güncellendi!")
             return redirect('core:profile', username=user.username)
             
     except Exception as e:
         logger.error(f"Profile edit error: {e}")
-        messages.error(request, "Profil güncellenirken bir hata oluştu.")
     
     return render(request, 'auth/profile_edit.html', {
         'user': request.user,
@@ -413,7 +376,6 @@ def design_edit(request, design_id):
             design.image = request.FILES['image']
         
         design.save()
-        messages.success(request, "Tasarım başarıyla güncellendi!")
         return redirect('core:design_detail', design_id=design.id)
     
     context = {
@@ -437,10 +399,7 @@ def design_create(request):
         if 'image' in request.FILES:
             new_design.image = request.FILES['image']
             new_design.save()
-            messages.success(request, "Tasarım başarıyla oluşturuldu!")
             return redirect('core:design_detail', design_id=new_design.id)
-        else:
-            messages.error(request, "Tasarım için bir görsel yüklemelisiniz.")
     
     return render(request, 'design_create.html')
 
@@ -458,7 +417,6 @@ def design_delete(request, design_id):
             os.remove(design.image.path)
         
         design.delete()
-        messages.success(request, "Tasarım başarıyla silindi!")
         return redirect('core:profile', username=request.user.username)
     
     return redirect('core:design_detail', design_id=design.id)
@@ -1157,54 +1115,4 @@ def test_urls(request):
     
     return HttpResponse("<br>".join(output))
 
-def debug_auth(request):
-    """Debug authentication status"""
-    output = []
-    output.append("<h1>Authentication Debug</h1>")
-    output.append("<style>body{font-family:Arial;padding:20px;} .info{background:#e3f2fd;padding:10px;margin:5px 0;border-left:4px solid #2196f3;}</style>")
-    
-    # User info
-    output.append(f"<div class='info'><strong>Current User:</strong> {request.user}</div>")
-    output.append(f"<div class='info'><strong>Is Authenticated:</strong> {request.user.is_authenticated}</div>")
-    output.append(f"<div class='info'><strong>User ID:</strong> {request.user.id if hasattr(request.user, 'id') else 'None'}</div>")
-    
-    # Session info
-    output.append(f"<div class='info'><strong>Session Key:</strong> {request.session.session_key}</div>")
-    output.append(f"<div class='info'><strong>Session Data:</strong> {dict(request.session)}</div>")
-    
-    # Test user creation and login
-    output.append("<h2>Test User Operations</h2>")
-    
-    # Check if test user exists
-    try:
-        test_user = User.objects.get(username='testuser')
-        output.append(f"<div class='info'>Test user exists: {test_user.username}</div>")
-    except User.DoesNotExist:
-        # Create test user
-        test_user = User.objects.create_user(
-            username='testuser', 
-            password='testpass123',
-            email='test@example.com'
-        )
-        output.append(f"<div class='info'>Test user created: {test_user.username}</div>")
-    
-    # Test authentication
-    from django.contrib.auth import authenticate
-    auth_user = authenticate(username='testuser', password='testpass123')
-    if auth_user:
-        output.append(f"<div class='info'>Authentication successful for testuser</div>")
-    else:
-        output.append(f"<div class='info' style='background:#ffebee;border-color:#f44336;'>Authentication FAILED for testuser</div>")
-    
-    # Quick login form
-    output.append("""
-    <h2>Quick Test Login</h2>
-    <form method="post" action="/login/">
-        <input type="hidden" name="csrfmiddlewaretoken" value="{0}">
-        <input type="text" name="username" value="testuser" placeholder="Username"><br><br>
-        <input type="password" name="password" value="testpass123" placeholder="Password"><br><br>
-        <button type="submit">Test Login</button>
-    </form>
-    """.format(request.META.get('CSRF_COOKIE', 'none')))
-    
-    return HttpResponse("<br>".join(output))
+

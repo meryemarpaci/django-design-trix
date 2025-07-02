@@ -46,6 +46,4 @@ urlpatterns = [
     
     # Debug (geçici)
     path('debug/', views.debug, name='debug'),
-    path('test-urls/', views.test_urls, name='test_urls'),
-    path('debug-auth/', views.debug_auth, name='debug_auth'),
 ] 

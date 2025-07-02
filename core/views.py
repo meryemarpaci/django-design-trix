@@ -690,6 +690,22 @@ def test_ai_model(request):
         })
     
     try:
+        # Check if token is set
+        api_token = os.environ.get('HUGGINGFACE_API_TOKEN')
+        if not api_token:
+            return JsonResponse({
+                'success': False,
+                'error': 'HUGGINGFACE_API_TOKEN environment variable not set',
+                'suggestion': 'Please set HUGGINGFACE_API_TOKEN in your Render.com environment variables'
+            })
+        
+        if not api_token.startswith('hf_'):
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid HUGGINGFACE_API_TOKEN format',
+                'suggestion': 'Token should start with "hf_" - please check your token'
+            })
+
         # Test with a free, publicly available model first
         api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
         
@@ -718,7 +734,7 @@ def test_ai_model(request):
         
         # If public doesn't work, try with token
         headers = {
-            "Authorization": f"Bearer {os.environ.get('HUGGINGFACE_API_TOKEN', '')}"
+            "Authorization": f"Bearer {api_token}"
         }
         
         response = requests.post(
@@ -754,12 +770,20 @@ def test_ai_model(request):
                     'lora_error': lora_response.text[:200]
                 })
         else:
-            return JsonResponse({
-                'success': False,
-                'error': f'API test failed. Status: {response.status_code}. Response: {response.text[:200]}',
-                'status_code': response.status_code,
-                'suggestion': 'Check if HUGGINGFACE_API_TOKEN is set correctly in Render.com environment variables'
-            })
+            error_text = response.text[:200]
+            if 'Invalid credentials' in error_text:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Invalid API token. Status: {response.status_code}',
+                    'suggestion': 'Please check that your HUGGINGFACE_API_TOKEN is valid and has not expired'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'API test failed. Status: {response.status_code}. Response: {error_text}',
+                    'status_code': response.status_code,
+                    'suggestion': 'Check if HUGGINGFACE_API_TOKEN is set correctly in Render.com environment variables'
+                })
             
     except Exception as e:
         logger.error(f"AI model test failed: {e}")

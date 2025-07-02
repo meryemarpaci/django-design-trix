@@ -608,7 +608,14 @@
                                 </div>
                             </div>
                             
-                            <a href="{% url 'core:design_detail' design.id %}" class="cosmic-card-link">
+                            <!-- Debug Info -->
+                            <p class="text-xs text-gray-500 mb-2">
+                                Debug: Design ID: {{ design.id }} | Status: {{ design.status }}
+                            </p>
+                            
+                            <a href="{% url 'core:design_detail' design.id %}" 
+                               class="cosmic-card-link"
+                               onclick="console.log('Clicking design link for ID:', {{ design.id }}); return true;">
                                 Detayları Gör
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />

@@ -16,6 +16,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.db.models import F
+from django.urls import reverse
 import os
 import json
 import uuid
@@ -1085,3 +1086,42 @@ def track_design_view(request, design_id):
             'success': False,
             'error': 'View tracking failed'
         })
+
+def test_urls(request):
+    """Test URL reverse functionality"""
+    output = []
+    output.append("<h1>URL Test Page</h1>")
+    
+    try:
+        # Test tasarım URL'leri
+        designs = Design.objects.all()[:5]
+        output.append(f"<h2>Found {designs.count()} designs:</h2>")
+        output.append("<ul>")
+        
+        for design in designs:
+            try:
+                url = reverse('core:design_detail', kwargs={'design_id': design.id})
+                output.append(f"<li>Design ID {design.id}: <a href='{url}'>{design.title}</a> - URL: {url}</li>")
+            except Exception as e:
+                output.append(f"<li>Design ID {design.id}: ERROR - {e}</li>")
+        
+        output.append("</ul>")
+        
+        # Test profile URL'leri  
+        users = User.objects.all()[:3]
+        output.append(f"<h2>Found {users.count()} users:</h2>")
+        output.append("<ul>")
+        
+        for user in users:
+            try:
+                url = reverse('core:profile', kwargs={'username': user.username})
+                output.append(f"<li>User {user.username}: <a href='{url}'>Profile</a> - URL: {url}</li>")
+            except Exception as e:
+                output.append(f"<li>User {user.username}: ERROR - {e}</li>")
+        
+        output.append("</ul>")
+        
+    except Exception as e:
+        output.append(f"<p style='color: red;'>Error: {e}</p>")
+    
+    return HttpResponse("<br>".join(output))

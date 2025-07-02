@@ -2259,6 +2259,47 @@ main {
     font-weight: 500;
 }
 
+/* Clickable Card Styles */
+.clickable-card {
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.clickable-card:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.cosmic-card-link-overlay {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: auto;
+    align-self: flex-start;
+}
+
+.cosmic-card-link-text {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(147, 51, 234, 0.1);
+    color: #7c3aed;
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    text-decoration: none;
+}
+
+.clickable-card:hover .cosmic-card-link-text {
+    background: rgba(147, 51, 234, 0.2);
+    border-color: rgba(147, 51, 234, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Legacy support for old cosmic-card-link */
 .cosmic-card-link {
     display: inline-flex;
     align-items: center;
@@ -2274,6 +2315,9 @@ main {
     backdrop-filter: blur(10px);
     margin-top: auto;
     align-self: flex-start;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
 }
 
 .cosmic-card-link:hover {
@@ -2330,10 +2374,24 @@ main {
 .card-3d {
     transform-style: preserve-3d;
     transition: transform 0.3s ease;
+    position: relative;
+    overflow: visible;
 }
 
 .card-3d:hover {
-    transform: perspective(1000px) rotateX(5deg) rotateY(5deg) scale3d(1.05, 1.05, 1.05);
+    transform: perspective(1000px) rotateX(2deg) rotateY(2deg) scale3d(1.02, 1.02, 1.02);
+}
+
+/* Ensure links remain clickable */
+.card-3d .cosmic-card-content {
+    position: relative;
+    z-index: 5;
+}
+
+.card-3d .cosmic-card-link {
+    position: relative;
+    z-index: 15 !important;
+    pointer-events: auto !important;
 }
 
 /* Mobile Responsive */

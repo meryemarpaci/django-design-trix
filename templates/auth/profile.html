@@ -559,70 +559,67 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% if designs %}
                 {% for design in designs %}
-                    <div class="cosmic-card card-3d">
-                        {% if design.status == 'published' %}
-                            <div class="cosmic-card-status status-published">Yayında</div>
-                        {% elif design.status == 'private' %}
-                            <div class="cosmic-card-status status-private">Özel</div>
-                        {% else %}
-                            <div class="cosmic-card-status status-draft">Taslak</div>
-                        {% endif %}
-                        
-                        <img src="{{ design.image.url }}" alt="{{ design.title }}" class="cosmic-card-image">
-                        
-                        <div class="cosmic-card-content">
-                            <div>
-                                <h3 class="cosmic-card-title">{{ design.title }}</h3>
-                                <div class="cosmic-card-creator">
-                                    <div class="cosmic-card-avatar">
-                                        {% if design.user.profile.avatar %}
-                                            <img src="{{ design.user.profile.avatar.url }}" alt="{{ design.user.username }}">
-                                        {% else %}
-                                            <div class="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800 text-xs font-bold">
-                                                {{ design.user.username|make_list|first|upper }}
-                                            </div>
+                    <a href="{% url 'core:design_detail' design.id %}" class="block">
+                        <div class="cosmic-card card-3d clickable-card cursor-pointer">
+                            {% if design.status == 'published' %}
+                                <div class="cosmic-card-status status-published">Yayında</div>
+                            {% elif design.status == 'private' %}
+                                <div class="cosmic-card-status status-private">Özel</div>
+                            {% else %}
+                                <div class="cosmic-card-status status-draft">Taslak</div>
+                            {% endif %}
+                            
+                            <img src="{{ design.image.url }}" alt="{{ design.title }}" class="cosmic-card-image">
+                            
+                            <div class="cosmic-card-content">
+                                <div>
+                                    <h3 class="cosmic-card-title">{{ design.title }}</h3>
+                                    <div class="cosmic-card-creator">
+                                        <div class="cosmic-card-avatar">
+                                            {% if design.user.profile.avatar %}
+                                                <img src="{{ design.user.profile.avatar.url }}" alt="{{ design.user.username }}">
+                                            {% else %}
+                                                <div class="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800 text-xs font-bold">
+                                                    {{ design.user.username|make_list|first|upper }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <span>{{ design.user.get_full_name|default:design.user.username }}</span>
+                                    </div>
+                                    
+                                    {% if design.description %}
+                                        <p class="cosmic-card-description line-clamp-2">{{ design.description }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="cosmic-card-meta">
+                                        {% if design.style %}
+                                            <span class="cosmic-card-chip">{{ design.style }}</span>
+                                        {% endif %}
+                                        {% if design.model_used %}
+                                            <span class="cosmic-card-chip">{{ design.model_used }}</span>
+                                        {% endif %}
+                                        {% if design.token_id %}
+                                            <span class="cosmic-card-chip">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                </svg>
+                                                {{ design.token_id|slice:":6" }}...
+                                            </span>
                                         {% endif %}
                                     </div>
-                                    <span>{{ design.user.get_full_name|default:design.user.username }}</span>
                                 </div>
                                 
-                                {% if design.description %}
-                                    <p class="cosmic-card-description line-clamp-2">{{ design.description }}</p>
-                                {% endif %}
-                                
-                                <div class="cosmic-card-meta">
-                                    {% if design.style %}
-                                        <span class="cosmic-card-chip">{{ design.style }}</span>
-                                    {% endif %}
-                                    {% if design.model_used %}
-                                        <span class="cosmic-card-chip">{{ design.model_used }}</span>
-                                    {% endif %}
-                                    {% if design.token_id %}
-                                        <span class="cosmic-card-chip">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                            </svg>
-                                            {{ design.token_id|slice:":6" }}...
-                                        </span>
-                                    {% endif %}
+                                <div class="cosmic-card-link-overlay">
+                                    <span class="cosmic-card-link-text">
+                                        Detayları Gör
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </span>
                                 </div>
                             </div>
-                            
-                            <!-- Debug Info -->
-                            <p class="text-xs text-gray-500 mb-2">
-                                Debug: Design ID: {{ design.id }} | Status: {{ design.status }}
-                            </p>
-                            
-                            <a href="{% url 'core:design_detail' design.id %}" 
-                               class="cosmic-card-link"
-                               onclick="console.log('Clicking design link for ID:', {{ design.id }}); return true;">
-                                Detayları Gör
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
-                            </a>
                         </div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <div class="col-span-full">
@@ -659,10 +656,10 @@
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
                 
-                const angleX = (y - centerY) / 15;
-                const angleY = (centerX - x) / 15;
+                const angleX = (y - centerY) / 25;
+                const angleY = (centerX - x) / 25;
                 
-                card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale3d(1.05, 1.05, 1.05)`;
+                card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale3d(1.02, 1.02, 1.02)`;
             });
             
             card.addEventListener('mouseleave', function() {

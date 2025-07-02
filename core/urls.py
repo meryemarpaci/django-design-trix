@@ -43,6 +43,7 @@ urlpatterns = [
     path('api/upload-for-inpainting/', views.upload_for_inpainting, name='upload_for_inpainting'),
     path('api/ai-status/', views.check_ai_status, name='check_ai_status'),
     path('api/test-ai/', views.test_ai_model, name='test_ai_model'),
+    path('api/generate-image/', views.generate_image_from_prompt, name='generate_image_from_prompt'),
     
     # Debug (geçici)
     path('debug/', views.debug, name='debug'),

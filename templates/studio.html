@@ -146,6 +146,131 @@
     gap: 10px;
     margin-top: 10px;
 }
+
+/* AI Test Button Styles */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* AI Generate Button Styles */
+.ai-generate-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: 2px solid transparent;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-generate-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.ai-generate-btn:hover:before {
+    left: 100%;
+}
+
+.ai-generate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.ai-generate-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.upload-help {
+    margin-top: 10px;
+    padding: 12px;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.upload-help strong {
+    color: var(--primary-color);
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+.notification-success .notification-content {
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.notification-error .notification-content {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 12px;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-close:hover {
+    opacity: 0.7;
+}
 </style>
 {% endblock %}
 
@@ -306,13 +431,22 @@
                     <div class="studio-card input-section">
                         <label for="image">Görsel</label>
                         <div class="image-upload-container">
-                            <input type="file" id="image" name="image" class="image-input" accept="image/*" required>
+                            <input type="file" id="image" name="image" class="image-input" accept="image/*">
                             <div class="image-preview"></div>
+                        </div>
+                        <div class="upload-help">
+                            <p>💡 <strong>İpucu:</strong> Görsel yüklemek isteğe bağlıdır. Aşağıdaki "AI ile Oluştur" butonu ile prompt'unuzdan otomatik görüntü üretebilirsiniz!</p>
                         </div>
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="create-design-btn btn-pulse">Tasarımı Oluştur</button>
+                        <button type="button" id="generate-ai-btn" class="ai-generate-btn btn-pulse" style="margin-right: 10px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20" style="margin-right: 5px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            AI ile Oluştur
+                        </button>
+                        <button type="submit" class="create-design-btn btn-pulse">Tasarımı Kaydet</button>
                     </div>
                 </form>
             </div>
@@ -529,6 +663,84 @@
             });
         }
         
+        // AI Generate Image Button
+        const aiGenerateBtn = document.getElementById('generate-ai-btn');
+        if (aiGenerateBtn) {
+            aiGenerateBtn.addEventListener('click', async function() {
+                const prompt = document.getElementById('prompt').value.trim();
+                const selectedStyle = document.getElementById('style').value || 'digital art';
+                
+                if (!prompt) {
+                    showNotification('Lütfen önce bir prompt girin!', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                const originalText = aiGenerateBtn.innerHTML;
+                aiGenerateBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20" style="margin-right: 5px; animation: spin 1s linear infinite;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Oluşturuluyor...
+                `;
+                aiGenerateBtn.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/generate-image/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            style: selectedStyle
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Show success notification
+                        showNotification(data.message, 'success');
+                        
+                        // Fill the title if empty
+                        const titleInput = document.getElementById('title');
+                        if (!titleInput.value) {
+                            titleInput.value = data.design_id ? `AI Tasarım #${data.design_id}` : 'AI ile Oluşturulan Tasarım';
+                        }
+                        
+                        // Show image preview
+                        const imagePreview = document.querySelector('.image-preview');
+                        imagePreview.innerHTML = `
+                            <img src="${data.image_url}" alt="AI Generated Image" style="max-width: 100%; border-radius: 8px;">
+                            <p style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">AI ile oluşturuldu: ${data.prompt}</p>
+                        `;
+                        imagePreview.classList.add('has-image');
+                        
+                        // Create a file input from the generated image (for form submission)
+                        fetch(data.image_url)
+                            .then(res => res.blob())
+                            .then(blob => {
+                                const file = new File([blob], `ai_generated_${Date.now()}.png`, { type: 'image/png' });
+                                const dt = new DataTransfer();
+                                dt.items.add(file);
+                                document.getElementById('image').files = dt.files;
+                            });
+                        
+                    } else {
+                        showNotification(`Hata: ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    showNotification(`Network hatası: ${error.message}`, 'error');
+                }
+                
+                // Reset button
+                aiGenerateBtn.innerHTML = originalText;
+                aiGenerateBtn.disabled = false;
+            });
+        }
+        
         // Notification function
         function showNotification(message, type) {
             const notification = document.createElement('div');
@@ -559,72 +771,6 @@
         }
     });
 </script>
-
-<style>
-/* AI Test Button Styles */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Notification Styles */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    max-width: 400px;
-    opacity: 0;
-    transform: translateX(100%);
-    transition: all 0.3s ease;
-}
-
-.notification.show {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.notification-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    backdrop-filter: blur(10px);
-}
-
-.notification-success .notification-content {
-    background: rgba(34, 197, 94, 0.9);
-    color: white;
-    border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.notification-error .notification-content {
-    background: rgba(239, 68, 68, 0.9);
-    color: white;
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.notification-close {
-    background: none;
-    border: none;
-    color: inherit;
-    font-size: 20px;
-    cursor: pointer;
-    margin-left: 12px;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.notification-close:hover {
-    opacity: 0.7;
-}
-</style>
 
 <script src="{% static 'js/studio.js' %}?v={% now 'U' %}"></script>
 <script src="{% static 'js/inpainting.js' %}?v={% now 'U' %}"></script>

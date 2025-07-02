@@ -710,125 +710,116 @@ def test_ai_model(request):
             "Authorization": f"Bearer {api_token}"
         }
 
-        # First, try a simple text generation model (requires less permissions)
-        text_api_url = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-small"
-        text_payload = {
-            "inputs": "Hello, how are you?",
-            "parameters": {"max_length": 50}
+        # Try the most common and accessible Stable Diffusion model
+        api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+        
+        # Simple prompt for testing
+        test_payload = {
+            "inputs": "a cat",
+            "parameters": {
+                "num_inference_steps": 10,
+                "guidance_scale": 7.5
+            }
         }
         
-        logger.info("Testing with simple text model first...")
+        logger.info("Testing AI image generation with Stable Diffusion v1.5...")
         
-        text_response = requests.post(
-            text_api_url,
+        response = requests.post(
+            api_url,
             headers=headers,
-            json=text_payload,
-            timeout=30
+            json=test_payload,
+            timeout=60  # Longer timeout for image generation
         )
         
-        if text_response.status_code == 200:
-            # Text model works, now try image generation
-            api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1-base"
-            test_payload = {
-                "inputs": "a beautiful cat sitting in a garden, digital art, high quality",
-                "parameters": {
-                    "num_inference_steps": 20,
-                    "guidance_scale": 7.5
-                }
-            }
-            
-            logger.info("Testing AI image generation with Stable Diffusion 2.1...")
-            
-            response = requests.post(
-                api_url,
-                headers=headers,
-                json=test_payload,
-                timeout=45
-            )
-            
-            if response.status_code == 200:
-                # Check if response contains image data
-                content_type = response.headers.get('content-type', '')
-                if 'image' in content_type or len(response.content) > 1000:
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'AI görüntü testi başarılı! Stable Diffusion 2.1 modeli çalışıyor ✨',
-                        'status_code': response.status_code,
-                        'api_url': api_url,
-                        'image_size': len(response.content),
-                        'note': 'Görüntü başarıyla oluşturuldu - AI sistemi hazır!'
-                    })
-                else:
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'API yanıt verdi ancak görüntü verisi alınamadı',
-                        'response_preview': response.text[:200]
-                    })
-            elif response.status_code == 403:
-                # Permission error for image model, but text works
+        logger.info(f"API response status: {response.status_code}")
+        
+        if response.status_code == 200:
+            # Check if response contains image data
+            if response.headers.get('content-type', '').startswith('image') or len(response.content) > 1000:
                 return JsonResponse({
                     'success': True,
-                    'message': 'Text AI çalışıyor ancak görüntü modeli için Write permission gerekli',
-                    'status_code': text_response.status_code,
-                    'api_url': text_api_url,
-                    'suggestion': 'Token\'ı Write permission ile yeniden oluşturun',
-                    'note': 'Temel AI fonksiyonları çalışıyor, sadece görüntü için izin gerekli'
+                    'message': '🎨 AI görüntü üretimi çalışıyor! Prompt ile görüntü oluşturabilirsiniz ✨',
+                    'status_code': response.status_code,
+                    'api_url': api_url,
+                    'image_size': len(response.content),
+                    'note': 'Stable Diffusion v1.5 modeli hazır!'
                 })
             else:
+                # Maybe it returned JSON with generated_text instead of image
+                try:
+                    result = response.json()
+                    if isinstance(result, list) and len(result) > 0:
+                        return JsonResponse({
+                            'success': True,
+                            'message': 'AI modeli yanıt veriyor ancak görüntü formatı beklenmiyor',
+                            'status_code': response.status_code,
+                            'response_type': 'json',
+                            'note': 'Model çalışıyor ama farklı format döndürüyor'
+                        })
+                except:
+                    pass
+                
                 return JsonResponse({
-                    'success': True,
-                    'message': f'Text AI çalışıyor, görüntü modeli durum: {response.status_code}',
-                    'text_working': True,
-                    'image_error': response.text[:200],
-                    'suggestion': 'Token izinlerini kontrol edin'
+                    'success': False,
+                    'error': 'API yanıt verdi ancak görüntü verisi alınamadı',
+                    'response_preview': response.text[:200],
+                    'content_type': response.headers.get('content-type', 'unknown')
                 })
-        
-        elif text_response.status_code == 503:
+                
+        elif response.status_code == 503:
             return JsonResponse({
                 'success': False,
-                'error': 'Model şu anda yükleniyor, lütfen 30 saniye bekleyip tekrar deneyin',
-                'status_code': text_response.status_code,
-                'suggestion': 'Model ilk kullanımda yüklenmesi biraz zaman alabilir'
+                'error': '⏳ Model yükleniyor - bu normal! 1-2 dakika bekleyip tekrar deneyin',
+                'status_code': response.status_code,
+                'suggestion': 'İlk kullanımda modeller yüklenmesi 1-2 dakika sürebilir'
             })
             
-        elif text_response.status_code == 401:
+        elif response.status_code == 401:
             return JsonResponse({
                 'success': False,
-                'error': 'API token geçersiz veya süresi dolmuş',
-                'status_code': text_response.status_code,
+                'error': '🔑 API token problemi - geçersiz veya süresi dolmuş',
+                'status_code': response.status_code,
                 'suggestion': 'Hugging Face token\'ınızı kontrol edin ve yenileyin'
             })
             
-        elif text_response.status_code == 403:
+        elif response.status_code == 403:
             return JsonResponse({
                 'success': False,
-                'error': 'Token\'ın Inference API izni yok - Write permission gerekli',
-                'status_code': text_response.status_code,
+                'error': '⚠️ Token izninde problem - Write permission gerekebilir',
+                'status_code': response.status_code,
                 'suggestion': 'Hugging Face\'de token\'ı Write permission ile yeniden oluşturun'
             })
             
-        else:
-            error_text = text_response.text[:200]
+        elif response.status_code == 404:
             return JsonResponse({
                 'success': False,
-                'error': f'API testi başarısız. Status: {text_response.status_code}. Yanıt: {error_text}',
-                'status_code': text_response.status_code,
-                'suggestion': 'Token izinlerini ve Hugging Face hesap durumunu kontrol edin'
+                'error': '❌ Model bulunamadı - farklı model deniyoruz',
+                'status_code': response.status_code,
+                'suggestion': 'Alternatif model deneyin veya daha sonra tekrar deneyin'
+            })
+            
+        else:
+            error_text = response.text[:200]
+            return JsonResponse({
+                'success': False,
+                'error': f'API hatası. Status: {response.status_code}. Yanıt: {error_text}',
+                'status_code': response.status_code,
+                'suggestion': 'Token ve network bağlantısını kontrol edin'
             })
             
     except requests.exceptions.Timeout:
         return JsonResponse({
             'success': False,
-            'error': 'API isteği zaman aşımına uğradı',
-            'suggestion': 'Model yükleniyor olabilir, lütfen tekrar deneyin'
+            'error': '⏰ Zaman aşımı - model yükleniyor olabilir',
+            'suggestion': '1-2 dakika bekleyip tekrar deneyin'
         })
         
     except Exception as e:
         logger.error(f"AI model test failed: {e}")
         return JsonResponse({
             'success': False,
-            'error': f'Test başarısız: {str(e)}',
-            'suggestion': 'Ağ bağlantısını ve API erişilebilirliğini kontrol edin'
+            'error': f'Test hatası: {str(e)}',
+            'suggestion': 'Network bağlantısını kontrol edin'
         })
 
 # Social Features
@@ -1180,5 +1171,148 @@ def test_urls(request):
         output.append(f"<p style='color: red;'>Error: {e}</p>")
     
     return HttpResponse("<br>".join(output))
+
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_http_methods(["POST"])
+def generate_image_from_prompt(request):
+    """
+    Generate image from text prompt using Stable Diffusion
+    """
+    if not AI_AVAILABLE:
+        return JsonResponse({
+            'success': False,
+            'error': 'AI functionality not available'
+        })
+    
+    try:
+        # Parse request data
+        data = json.loads(request.body)
+        prompt = data.get('prompt', '').strip()
+        style = data.get('style', 'digital art')
+        
+        if not prompt:
+            return JsonResponse({
+                'success': False,
+                'error': 'Prompt boş olamaz'
+            })
+        
+        # Check token
+        api_token = os.environ.get('HUGGINGFACE_API_TOKEN')
+        if not api_token:
+            return JsonResponse({
+                'success': False,
+                'error': 'AI token yapılandırılmamış'
+            })
+        
+        # Prepare full prompt with style
+        if style and style != 'none':
+            full_prompt = f"{prompt}, {style}, high quality, detailed"
+        else:
+            full_prompt = f"{prompt}, high quality, detailed"
+        
+        headers = {
+            "Authorization": f"Bearer {api_token}"
+        }
+        
+        # Use Stable Diffusion v1.5
+        api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+        
+        payload = {
+            "inputs": full_prompt,
+            "parameters": {
+                "num_inference_steps": 20,
+                "guidance_scale": 7.5,
+                "width": 512,
+                "height": 512
+            }
+        }
+        
+        logger.info(f"Generating image with prompt: {full_prompt}")
+        
+        response = requests.post(
+            api_url,
+            headers=headers,
+            json=payload,
+            timeout=90  # Longer timeout for generation
+        )
+        
+        if response.status_code == 200:
+            # Save the generated image
+            image_bytes = response.content
+            if len(image_bytes) > 1000:  # Valid image
+                # Create unique filename
+                filename = f"ai_generated_{uuid.uuid4().hex[:8]}.png"
+                file_path = f"media/designs/{filename}"
+                
+                # Save image to media folder
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, 'wb') as f:
+                    f.write(image_bytes)
+                
+                # Create Design object
+                design = Design.objects.create(
+                    title=f"AI: {prompt[:50]}{'...' if len(prompt) > 50 else ''}",
+                    prompt=full_prompt,
+                    style=style,
+                    image=f"designs/{filename}",
+                    user=request.user,
+                    visibility='public'
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Görüntü başarıyla oluşturuldu! 🎨',
+                    'design_id': design.id,
+                    'image_url': f"/media/designs/{filename}",
+                    'prompt': prompt,
+                    'full_prompt': full_prompt
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Geçersiz görüntü verisi alındı'
+                })
+                
+        elif response.status_code == 503:
+            return JsonResponse({
+                'success': False,
+                'error': 'Model yükleniyor, lütfen 1-2 dakika bekleyip tekrar deneyin',
+                'status_code': response.status_code
+            })
+            
+        elif response.status_code == 401:
+            return JsonResponse({
+                'success': False,
+                'error': 'API token problemi',
+                'status_code': response.status_code
+            })
+            
+        elif response.status_code == 403:
+            return JsonResponse({
+                'success': False,
+                'error': 'Token permission hatası - Write izni gerekebilir',
+                'status_code': response.status_code
+            })
+            
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': f'API hatası: {response.status_code}',
+                'response': response.text[:200]
+            })
+            
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Geçersiz JSON verisi'
+        })
+        
+    except Exception as e:
+        logger.error(f"Image generation failed: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Görüntü üretimi başarısız: {str(e)}'
+        })
 
 

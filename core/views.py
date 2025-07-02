@@ -706,81 +706,115 @@ def test_ai_model(request):
                 'suggestion': 'Token should start with "hf_" - please check your token'
             })
 
-        # Test with Stable Diffusion 2.1 - faster and more reliable
-        api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1-base"
-        
-        # Simple Turkish-friendly test prompt
-        test_payload = {
-            "inputs": "a beautiful cat sitting in a garden, digital art, high quality",
-            "parameters": {
-                "num_inference_steps": 20,
-                "guidance_scale": 7.5
-            }
-        }
-        
         headers = {
             "Authorization": f"Bearer {api_token}"
         }
+
+        # First, try a simple text generation model (requires less permissions)
+        text_api_url = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-small"
+        text_payload = {
+            "inputs": "Hello, how are you?",
+            "parameters": {"max_length": 50}
+        }
         
-        logger.info("Testing AI image generation with Stable Diffusion 2.1...")
+        logger.info("Testing with simple text model first...")
         
-        response = requests.post(
-            api_url,
+        text_response = requests.post(
+            text_api_url,
             headers=headers,
-            json=test_payload,
-            timeout=45  # Increased timeout for image generation
+            json=text_payload,
+            timeout=30
         )
         
-        if response.status_code == 200:
-            # Check if response contains image data
-            content_type = response.headers.get('content-type', '')
-            if 'image' in content_type or len(response.content) > 1000:
+        if text_response.status_code == 200:
+            # Text model works, now try image generation
+            api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1-base"
+            test_payload = {
+                "inputs": "a beautiful cat sitting in a garden, digital art, high quality",
+                "parameters": {
+                    "num_inference_steps": 20,
+                    "guidance_scale": 7.5
+                }
+            }
+            
+            logger.info("Testing AI image generation with Stable Diffusion 2.1...")
+            
+            response = requests.post(
+                api_url,
+                headers=headers,
+                json=test_payload,
+                timeout=45
+            )
+            
+            if response.status_code == 200:
+                # Check if response contains image data
+                content_type = response.headers.get('content-type', '')
+                if 'image' in content_type or len(response.content) > 1000:
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'AI görüntü testi başarılı! Stable Diffusion 2.1 modeli çalışıyor ✨',
+                        'status_code': response.status_code,
+                        'api_url': api_url,
+                        'image_size': len(response.content),
+                        'note': 'Görüntü başarıyla oluşturuldu - AI sistemi hazır!'
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'API yanıt verdi ancak görüntü verisi alınamadı',
+                        'response_preview': response.text[:200]
+                    })
+            elif response.status_code == 403:
+                # Permission error for image model, but text works
                 return JsonResponse({
                     'success': True,
-                    'message': 'AI görüntü testi başarılı! Stable Diffusion 2.1 modeli çalışıyor ✨',
-                    'status_code': response.status_code,
-                    'api_url': api_url,
-                    'image_size': len(response.content),
-                    'note': 'Görüntü başarıyla oluşturuldu - AI sistemi hazır!'
+                    'message': 'Text AI çalışıyor ancak görüntü modeli için Write permission gerekli',
+                    'status_code': text_response.status_code,
+                    'api_url': text_api_url,
+                    'suggestion': 'Token\'ı Write permission ile yeniden oluşturun',
+                    'note': 'Temel AI fonksiyonları çalışıyor, sadece görüntü için izin gerekli'
                 })
             else:
                 return JsonResponse({
-                    'success': False,
-                    'error': 'API yanıt verdi ancak görüntü verisi alınamadı',
-                    'response_preview': response.text[:200]
+                    'success': True,
+                    'message': f'Text AI çalışıyor, görüntü modeli durum: {response.status_code}',
+                    'text_working': True,
+                    'image_error': response.text[:200],
+                    'suggestion': 'Token izinlerini kontrol edin'
                 })
-                
-        elif response.status_code == 503:
+        
+        elif text_response.status_code == 503:
             return JsonResponse({
                 'success': False,
                 'error': 'Model şu anda yükleniyor, lütfen 30 saniye bekleyip tekrar deneyin',
-                'status_code': response.status_code,
+                'status_code': text_response.status_code,
                 'suggestion': 'Model ilk kullanımda yüklenmesi biraz zaman alabilir'
             })
             
-        elif response.status_code == 401:
+        elif text_response.status_code == 401:
             return JsonResponse({
                 'success': False,
                 'error': 'API token geçersiz veya süresi dolmuş',
-                'status_code': response.status_code,
+                'status_code': text_response.status_code,
                 'suggestion': 'Hugging Face token\'ınızı kontrol edin ve yenileyin'
             })
             
+        elif text_response.status_code == 403:
+            return JsonResponse({
+                'success': False,
+                'error': 'Token\'ın Inference API izni yok - Write permission gerekli',
+                'status_code': text_response.status_code,
+                'suggestion': 'Hugging Face\'de token\'ı Write permission ile yeniden oluşturun'
+            })
+            
         else:
-            error_text = response.text[:200]
-            if 'Invalid credentials' in error_text:
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Geçersiz API token. Status: {response.status_code}',
-                    'suggestion': 'HUGGINGFACE_API_TOKEN\'ın geçerli olduğunu ve süresinin dolmadığını kontrol edin'
-                })
-            else:
-                return JsonResponse({
-                    'success': False,
-                    'error': f'API testi başarısız. Status: {response.status_code}. Yanıt: {error_text}',
-                    'status_code': response.status_code,
-                    'suggestion': 'Render.com ortam değişkenlerinde HUGGINGFACE_API_TOKEN\'ın doğru ayarlandığını kontrol edin'
-                })
+            error_text = text_response.text[:200]
+            return JsonResponse({
+                'success': False,
+                'error': f'API testi başarısız. Status: {text_response.status_code}. Yanıt: {error_text}',
+                'status_code': text_response.status_code,
+                'suggestion': 'Token izinlerini ve Hugging Face hesap durumunu kontrol edin'
+            })
             
     except requests.exceptions.Timeout:
         return JsonResponse({
